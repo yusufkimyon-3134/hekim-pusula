@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Container } from "@/components/layout/container";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,13 +9,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import type { Kurum } from "@/types";
 
 // Sprint 1: statik placeholder veri. Gerçek arama/sıralama sonraki
-// sprintlerde Supabase sorgularıyla değiştirilecek.
-const placeholderResults = [
-  { id: "1", name: "Devlet Hastanesi", il: "Ağrı", ilce: "Merkez" },
-  { id: "2", name: "Eğitim ve Araştırma Hastanesi", il: "Kocaeli", ilce: "İzmit" },
-  { id: "3", name: "Devlet Hastanesi", il: "Muş", ilce: "Bulanık" },
+// sprintlerde Supabase sorgularıyla değiştirilecek. `Kurum` tipini
+// kullanmak, gerçek veri bağlandığında şeklin tutarlı kalmasını sağlar.
+const placeholderResults: Kurum[] = [
+  { id: "1", ad: "Devlet Hastanesi", il: "Ağrı", ilce: "Merkez" },
+  { id: "2", ad: "Eğitim ve Araştırma Hastanesi", il: "Kocaeli", ilce: "İzmit" },
+  { id: "3", ad: "Devlet Hastanesi", il: "Muş", ilce: "Bulanık" },
 ];
 
 export default async function SearchPage({
@@ -31,7 +34,7 @@ export default async function SearchPage({
         İl, ilçe veya kurum adına göre ara.
       </p>
 
-      <form className="mt-6 flex items-center gap-2">
+      <form action="/search" className="mt-6 flex items-center gap-2">
         <Input
           name="q"
           defaultValue={q}
@@ -42,20 +45,20 @@ export default async function SearchPage({
       </form>
 
       <div className="mt-8 space-y-3">
-        {placeholderResults.map((k) => (
-          <Card key={k.id}>
+        {placeholderResults.map((kurum) => (
+          <Card key={kurum.id}>
             <CardHeader className="flex-row items-center justify-between space-y-0">
               <div>
-                <CardTitle className="text-base">{k.name}</CardTitle>
+                <CardTitle className="text-base">{kurum.ad}</CardTitle>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {k.ilce}, {k.il}
+                  {kurum.ilce}, {kurum.il}
                 </p>
               </div>
               <Badge variant="secondary">Placeholder</Badge>
             </CardHeader>
             <CardContent>
               <Button asChild variant="outline" size="sm">
-                <a href={`/hospital/${k.id}`}>Detayı gör</a>
+                <Link href={`/hospital/${kurum.id}`}>Detayı gör</Link>
               </Button>
             </CardContent>
           </Card>

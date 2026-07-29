@@ -1,18 +1,20 @@
 /**
  * Sprint 1 kapsamında yalnızca placeholder sayfalarda kullanılan
- * asgari tipler. Gerçek veritabanı şeması docs/DATABASE.md içinde;
- * bu tipler ileride Supabase'den üretilen tiplerle değiştirilecek.
+ * asgari tipler. Alan adları `docs/DATABASE.md` içindeki tablo/sütun
+ * adlarıyla birebir eşleşecek şekilde seçildi (kurumlar.ad, kurumlar.il,
+ * kurumlar.ilce, klinikler.kurum_id, klinikler.brans) — ileride Supabase'den
+ * üretilen tiplerle değiştirilecek, o zaman da bu eşleşme korunmalı.
  */
 
-export interface Hospital {
+export interface Kurum {
   id: string;
-  name: string;
+  ad: string;
   il: string;
   ilce: string;
 }
 
-export interface Clinic {
+export interface Klinik {
   id: string;
-  hospitalId: string;
+  kurumId: string;
   brans: string;
 }

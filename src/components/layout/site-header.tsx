@@ -18,7 +18,7 @@ export function SiteHeader() {
           />
           <span>Hekim Pusula</span>
         </Link>
-        <nav className="flex items-center gap-6 text-sm">
+        <nav aria-label="Ana menü" className="flex items-center gap-6 text-sm">
           {navItems.map((item) => (
             <Link
               key={item.href}

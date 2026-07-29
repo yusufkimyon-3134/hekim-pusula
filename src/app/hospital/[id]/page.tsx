@@ -1,5 +1,5 @@
 import { Container } from "@/components/layout/container";
-import { Badge } from "@/components/ui/badge";
+import { DetailPageHeader } from "@/components/layout/detail-page-header";
 import {
   Card,
   CardContent,
@@ -18,17 +18,15 @@ export default async function HospitalDetailPage({
 
   return (
     <Container className="py-10">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Hastane detayı
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+      <DetailPageHeader
+        title="Hastane detayı"
+        subtitle={
+          <>
             Kurum kimliği: <span className="font-mono">{id}</span>
-          </p>
-        </div>
-        <Badge variant="secondary">Sprint 1 — placeholder</Badge>
-      </div>
+          </>
+        }
+        badgeLabel="Sprint 1 — placeholder"
+      />
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         <Card>
