@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
-import type { Doctor, DoctorProfileInput } from "@/types";
+import type { Doctor, DoctorProfileInput, MyReputation } from "@/types";
 
 type DoctorRow = Database["public"]["Tables"]["doctors"]["Row"];
 
@@ -64,5 +64,28 @@ export class DoctorRepository {
       throw new Error(`Profil kaydedilemedi: ${error.message}`);
     }
     return toDoctor(data);
+  }
+
+  /**
+   * Kendi itibar özetin (Sprint 7). `get_my_reputation()` SECURITY
+   * DEFINER'dır ve dahili olarak `auth.uid()`'e sabitlenmiştir — başka
+   * bir hekimin verisi hiçbir şekilde bu yoldan sorgulanamaz.
+   */
+  async getMyReputation(): Promise<MyReputation | null> {
+    const { data, error } = await this.client.rpc("get_my_reputation");
+
+    if (error) {
+      throw new Error(`İtibar bilgisi getirilemedi: ${error.message}`);
+    }
+    const row = data?.[0];
+    if (!row) return null;
+
+    return {
+      reviewCount: row.review_count,
+      helpfulVotes: row.helpful_votes,
+      reputationScore: row.reputation_score,
+      isVerified: row.is_verified,
+      memberSince: row.member_since,
+    };
   }
 }

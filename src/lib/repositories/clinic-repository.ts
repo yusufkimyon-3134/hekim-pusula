@@ -50,6 +50,7 @@ function toClinicStats(row: ClinicStatsRow): ClinicStats {
     avgDailyPatients: row.avg_daily_patients,
     avgServicePatients: row.avg_service_patients,
     recommendPercentage: row.recommend_percentage,
+    totalHelpfulVotes: row.total_helpful_votes,
   };
 }
 

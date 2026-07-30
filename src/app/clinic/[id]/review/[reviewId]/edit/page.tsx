@@ -4,51 +4,43 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReviewFormFields } from "@/features/review/components/review-form-fields";
 import { createClient } from "@/lib/supabase/server";
-import { DoctorRepository } from "@/lib/repositories/doctor-repository";
 import { ClinicRepository } from "@/lib/repositories/clinic-repository";
 import { ReviewRepository } from "@/lib/repositories/review-repository";
-import { submitReview } from "./actions";
+import { editReview } from "./actions";
 
-export default async function ReviewPage({
+export default async function EditReviewPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; reviewId: string }>;
   searchParams: Promise<{ error?: string }>;
 }) {
-  const { id } = await params;
+  const { id, reviewId } = await params;
   const { error } = await searchParams;
 
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
-
   if (!userData.user) {
-    redirect(`/login?redirectTo=${encodeURIComponent(`/clinic/${id}/review`)}`);
-  }
-
-  const doctorRepository = new DoctorRepository(supabase);
-  const doctor = await doctorRepository.findById(userData.user.id);
-  if (!doctor) {
-    redirect(`/profile?redirectTo=${encodeURIComponent(`/clinic/${id}/review`)}`);
+    redirect(`/login?redirectTo=${encodeURIComponent(`/clinic/${id}/review/${reviewId}/edit`)}`);
   }
 
   const clinicRepository = new ClinicRepository(supabase);
   const reviewRepository = new ReviewRepository(supabase);
 
-  const [clinic, ownReviewId] = await Promise.all([
+  const [clinic, review] = await Promise.all([
     clinicRepository.findByIdWithHospital(id),
-    reviewRepository.findOwnReviewIdForClinic(id),
+    reviewRepository.findById(reviewId),
   ]);
-  if (!clinic) {
+
+  if (!clinic || !review || review.clinicId !== id) {
     notFound();
   }
 
-  // Sprint 7 — Bölüm 5: aynı klinik için ikinci bir yorum eklemeyi
-  // engellemek yerine (ki bu zaten DB seviyesinde de reddedilirdi),
-  // kullanıcıyı doğrudan var olan değerlendirmesini düzenlemeye
-  // yönlendiriyoruz — dostane bir "zaten değerlendirdin" deneyimi.
-  if (ownReviewId) {
-    redirect(`/clinic/${id}/review/${ownReviewId}/edit`);
+  // RLS zaten yalnızca sahibinin bu review'ı bulabilmesini/düzenleyebilmesini
+  // sağlıyor (update_review de ayrıca kontrol ediyor); burada da erken ve
+  // net bir yönlendirme yapıyoruz.
+  if (!review.isMine) {
+    redirect(`/clinic/${id}`);
   }
 
   return (
@@ -56,7 +48,7 @@ export default async function ReviewPage({
       <div className="mx-auto max-w-lg space-y-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Deneyimini paylaş
+            Değerlendirmeni düzenle
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {clinic.branch} — {clinic.hospital.name}
@@ -68,8 +60,9 @@ export default async function ReviewPage({
             <CardTitle className="text-base">Değerlendirme</CardTitle>
           </CardHeader>
           <CardContent>
-            <form action={submitReview} className="space-y-6">
-              <input type="hidden" name="clinicId" value={clinic.id} />
+            <form action={editReview} className="space-y-6">
+              <input type="hidden" name="reviewId" value={reviewId} />
+              <input type="hidden" name="clinicId" value={id} />
 
               {error && (
                 <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -77,10 +70,10 @@ export default async function ReviewPage({
                 </p>
               )}
 
-              <ReviewFormFields />
+              <ReviewFormFields defaults={review} />
 
               <Button type="submit" className="w-full">
-                Paylaş
+                Kaydet
               </Button>
             </form>
           </CardContent>

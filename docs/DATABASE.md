@@ -105,6 +105,7 @@ Gerçek ad/soyad/TC hiçbir sütunda tutulmaz — bu, ürünün "anonimlik esas"
 | service_patients | integer | ≥ 0 |
 | would_choose_again | boolean | |
 | comment | text, null olabilir | |
+| status | enum `review_status` | Sprint 7: pending / approved / rejected, varsayılan **approved** |
 | created_at, updated_at | timestamptz | |
 
 **`clinic_id` neden denormalize edildi:** teorik olarak `doctor_workplaces.clinic_id` üzerinden türetilebilir, ama "bir klinikteki tüm yorumları getir" sorgusunu join'e zorlamak yerine doğrudan indekslenebilir bir sütun olarak tutmak, arama/listeleme performansı için tercih edildi.
@@ -116,6 +117,22 @@ Gerçek ad/soyad/TC hiçbir sütunda tutulmaz — bu, ürünün "anonimlik esas"
 **Her iki senaryo da gerçek Postgres'te test edildi** — yanlış `clinic_id` ile ekleme ve aynı klinik için ikinci değerlendirme denemesi doğru şekilde reddedildi.
 
 > **CTO incelemesi notu:** Bu tablo hiçbir zaman çalışma dönemi tarihi (`start_date`/`end_date` benzeri) içermedi — tarih bilgisi yalnızca `doctor_workplaces`'te tutulur, burada kopyalanmaz. "Bir hekim bir klinik için tek aktif değerlendirme" kuralı zaten yukarıdaki trigger ile karşılanıyordu, bu incelemede ek bir değişiklik gerekmedi.
+
+> **Sprint 7 notu — `status`:** Yeni review'lar varsayılan `approved` ile gönderiliyor (moderatör paneli henüz yok — `pending` varsayılan olsaydı hiçbir review hiç görünmezdi). Bir review 3+ farklı hekimden bekleyen rapor alırsa `flag_heavily_reported_reviews` trigger'ı otomatik olarak `pending`'e çeker. Gerekçe: `docs/SPRINT7.md`.
+
+### `review_helpful_votes` (Sprint 7)
+
+| Alan | Tip | Not |
+|---|---|---|
+| review_id | uuid, FK → reviews | on delete cascade |
+| doctor_id | uuid, FK → doctors | on delete cascade |
+| created_at | timestamptz | |
+
+`PRIMARY KEY (review_id, doctor_id)` — `favorites` ile aynı desen, aynı hekimin aynı review'a iki kez oy vermesini imkansız kılar. RLS: yalnızca kendi oyunu görebilir/ekleyebilir/silebilirsin (kimin kime oy verdiği herkese açık değil). Toplam sayı `review_helpful_counts` view'ı ile (owner-bypass, `security_invoker` **yok**) herkese açık.
+
+### `review_author_stats`, `doctor_reputation` (view'lar, Sprint 7)
+
+`doctor_reputation` dahili bir view'dır (anon/authenticated'a hiç GRANT edilmez) — yalnızca `get_my_reputation()` (SECURITY DEFINER, `auth.uid()`'e sabit, profil sayfası için) ve `review_author_stats` (herkese açık, review kartları için) tarafından kullanılır. **`review_author_stats` asla `doctor_id` döndürmez** — yalnızca `review_id` + sayılar. Bu, "review kartında itibar göster" isteği ile "hekim dizini olmasın" ilkesini uzlaştırıyor (bkz. `docs/SPRINT7.md`).
 
 ### `review_scores`
 
@@ -163,12 +180,16 @@ Artık isteğe bağlı `filter_min_overall`, `filter_min_education`, `filter_min
 | id | uuid, PK | |
 | review_id | uuid, FK → reviews | on delete cascade |
 | doctor_id | uuid, FK → doctors, **null olabilir** | on delete **set null** |
-| reason | text | |
+| reason | enum `report_reason` | Sprint 7: `text`'ten enum'a değiştirildi — spam / offensive_language / false_information / duplicate / other |
 | status | enum `report_status` | pending / reviewed / dismissed / action_taken |
 | resolved_at | timestamptz, null olabilir | Moderatörün raporu sonuçlandırdığı an |
 | created_at, updated_at | timestamptz | |
 
+`UNIQUE (review_id, doctor_id)` (Sprint 7) — aynı hekim aynı review'ı iki kez raporlayamaz.
+
 `doctor_id` kasıtlı olarak nullable ve `on delete set null`: bildiren hekimin hesabı silinse bile moderasyon kaydı (sebep, durum, tarih) korunur — yalnızca "kim bildirdi" bilgisi kaybolur.
+
+> **Sprint 7 notu:** Bu tablo Sprint 2'den beri "her şeyi reddet" placeholder RLS'e sahipti (kimlik doğrulama yoktu). Artık gerçekten aktif: kimliği doğrulanmış herkes rapor gönderebilir, yalnızca kendi gönderdiği raporları görebilir. `reason` alanı da bu sprintte serbest metinden sabit bir enum'a dönüştürüldü (tablo hiç yazılabilir olmadığı için veri kaybı riski yoktu).
 
 **`resolved_at` (CTO incelemesinde eklendi):** gelecekteki moderasyon araçlarını desteklemek için. İki CHECK kısıtıyla `status` ile tutarlılığı zorlanıyor: `status = 'pending'` iken `resolved_at` **null olmalı**, `status <> 'pending'` iken (reviewed/dismissed/action_taken) `resolved_at` **dolu olmalı**. Bu, "sonuçlandırılmış ama ne zaman sonuçlandığı bilinmiyor" ya da "beklemede ama sonuç tarihi girilmiş" gibi tutarsız durumları veritabanı seviyesinde imkansız kılar — her iki senaryo da **gerçek Postgres'te test edildi**.
 
@@ -182,15 +203,17 @@ Görev tanımının genel gereksinimi ("Add created_at and updated_at everywhere
 
 ## RLS (Row Level Security) durumu
 
-Her tabloda RLS **etkin**. Sprint 5'ten itibaren `favorites`/`reports` dışındaki tüm tablolarda placeholder'ların yerini gerçek kurallar aldı:
+Her tabloda RLS **etkin**. Sprint 7 itibarıyla `favorites` dışındaki tüm tablolarda placeholder'ların yerini gerçek kurallar aldı:
 
 - **`hospitals`, `clinics`** — herkes `SELECT` yapabilir (`using (true)`). Kamuya açık referans veri.
-- **`doctors`, `doctor_workplaces`** — yalnızca kendi satırı (`auth.uid() = id` / `auth.uid() = doctor_id`). Herkese açık bir "hekim dizini" **yok** — anonimlik ilkesi gereği.
-- **`reviews`, `review_scores`** — **herkes okuyabilir** (`using (true)`, ürünün temel değeri), ama yalnızca kendi `doctor_workplaces` kaydına bağlı bir satır ekleyip düzenleyebilir (alt sorgu ile `auth.uid()` kontrolü).
-- **`favorites`, `reports`** — henüz implemente edilmedi, kasıtlı olarak **tamamen kilitli** placeholder politika (`using (false)`) korunuyor.
+- **`doctors`, `doctor_workplaces`** — yalnızca kendi satırı. Herkese açık bir "hekim dizini" **yok** — anonimlik ilkesi gereği.
+- **`reviews`, `review_scores`** — **onaylı (`status='approved'`) olanlar herkese açık okunur** (Sprint 7'de eklenen moderasyon durumuyla birlikte), yazar kendi review'unu durumu ne olursa olsun görebilir/düzenleyebilir/silebilir.
+- **`review_helpful_votes`** (Sprint 7) — yalnızca kendi oyun (select/insert/delete); toplam sayı `review_helpful_counts` view'ı ile herkese açık.
+- **`reports`** (Sprint 7'de aktifleşti) — kimliği doğrulanmış herkes rapor gönderebilir, yalnızca kendi raporlarını görebilir.
+- **`favorites`** — henüz implemente edilmedi, kasıtlı olarak **tamamen kilitli** placeholder politika korunuyor.
 
-**Gerçek Postgres'te, `auth.uid()`'i taklit eden bir fonksiyon ve iki farklı kullanıcı simülasyonuyla test edildi** (Sprint 5): kullanıcılar birbirinin profilini göremiyor, biri diğerinin `doctor_workplaces`'i adına review ekleyemiyor, `anon` rolü review'ları okuyabiliyor ama `doctors`'ı okuyamıyor/yazamıyor. Detaylar: `docs/SPRINT5.md`.
+**Gerçek Postgres'te, `auth.uid()`'i taklit eden bir fonksiyon ve çok kullanıcılı simülasyonlarla test edildi** (Sprint 5 ve 7): kullanıcılar birbirinin profilini göremiyor, biri diğerinin adına review ekleyemiyor/düzenleyemiyor, `anon` rolü onaylı review'ları okuyabiliyor ama `doctors`'ı okuyamıyor/yazamıyor, faydalı oylar tekil ve gizli ama toplamı herkese açık, 3+ rapor alan bir review otomatik gizleniyor. Detaylar: `docs/SPRINT5.md`, `docs/SPRINT7.md`.
 
 ## Repository katmanı ile ilişki
 
-`HospitalRepository`, `ClinicRepository` (Sprint 2-3, Sprint 6'da `getStats`/`rankByBranch`/`listBranches` ile genişledi), `DoctorRepository`, `ReviewRepository` (Sprint 5). `favorites`/`reports` için repository henüz yok — ilgili özellik implemente edildiğinde eklenecek.
+`HospitalRepository`, `ClinicRepository` (Sprint 2-3, Sprint 6'da genişledi), `DoctorRepository` (Sprint 5, Sprint 7'de `getMyReputation` eklendi), `ReviewRepository` (Sprint 5, Sprint 7'de `update`/`delete`/`voteHelpful`/`findOwnReviewIdForClinic` eklendi), `ReportRepository` (Sprint 7, yeni). `favorites` için repository henüz yok.

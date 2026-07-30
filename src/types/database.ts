@@ -27,6 +27,15 @@ export type DoctorRole = "general_practitioner" | "specialist" | "subspecialist"
 
 export type ReportStatus = "pending" | "reviewed" | "dismissed" | "action_taken";
 
+export type ReportReason =
+  | "spam"
+  | "offensive_language"
+  | "false_information"
+  | "duplicate"
+  | "other";
+
+export type ReviewStatus = "pending" | "approved" | "rejected";
+
 export interface Database {
   public: {
     Tables: {
@@ -155,6 +164,7 @@ export interface Database {
           service_patients: number;
           would_choose_again: boolean;
           comment: string | null;
+          status: ReviewStatus;
           created_at: string;
           updated_at: string;
         };
@@ -167,6 +177,7 @@ export interface Database {
           service_patients: number;
           would_choose_again: boolean;
           comment?: string | null;
+          status?: ReviewStatus;
           created_at?: string;
           updated_at?: string;
         };
@@ -239,7 +250,7 @@ export interface Database {
           id: string;
           review_id: string;
           doctor_id: string | null;
-          reason: string;
+          reason: ReportReason;
           status: ReportStatus;
           resolved_at: string | null;
           created_at: string;
@@ -249,7 +260,7 @@ export interface Database {
           id?: string;
           review_id: string;
           doctor_id?: string | null;
-          reason: string;
+          reason: ReportReason;
           status?: ReportStatus;
           resolved_at?: string | null;
           created_at?: string;
@@ -259,6 +270,27 @@ export interface Database {
         Relationships: [
           {
             foreignKeyName: "reports_review_id_fkey";
+            columns: ["review_id"];
+            referencedRelation: "reviews";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      review_helpful_votes: {
+        Row: {
+          review_id: string;
+          doctor_id: string;
+          created_at: string;
+        };
+        Insert: {
+          review_id: string;
+          doctor_id: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["review_helpful_votes"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "review_helpful_votes_review_id_fkey";
             columns: ["review_id"];
             referencedRelation: "reviews";
             referencedColumns: ["id"];
@@ -289,11 +321,56 @@ export interface Database {
           avg_daily_patients: number | null;
           avg_service_patients: number | null;
           recommend_percentage: number | null;
+          total_helpful_votes: number;
+        };
+        Relationships: [];
+      };
+      review_helpful_counts: {
+        Row: {
+          review_id: string;
+          helpful_count: number;
+        };
+        Relationships: [];
+      };
+      review_author_stats: {
+        Row: {
+          review_id: string;
+          author_review_count: number;
+          author_helpful_votes: number;
+          author_reputation_score: number;
+          author_is_verified: boolean;
         };
         Relationships: [];
       };
     };
     Functions: {
+      get_my_reputation: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          review_count: number;
+          helpful_votes: number;
+          reputation_score: number;
+          is_verified: boolean;
+          member_since: string;
+        }[];
+      };
+      update_review: {
+        Args: {
+          p_review_id: string;
+          p_monthly_shifts: number;
+          p_daily_patients: number;
+          p_service_patients: number;
+          p_would_choose_again: boolean;
+          p_comment: string | null;
+          p_incentive_score: number;
+          p_colleague_score: number;
+          p_management_score: number;
+          p_city_score: number;
+          p_education_score: number;
+          p_academic_score: number;
+        };
+        Returns: undefined;
+      };
       submit_review: {
         Args: {
           p_clinic_id: string;

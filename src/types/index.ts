@@ -1,6 +1,6 @@
 import type { DoctorRole, HospitalType } from "./database";
 
-export type { HospitalType, DoctorRole, ReportStatus } from "./database";
+export type { HospitalType, DoctorRole, ReportStatus, ReportReason, ReviewStatus } from "./database";
 
 /**
  * Uygulama katmanının kullandığı domain tipleri (camelCase).
@@ -89,12 +89,22 @@ export interface ReviewWithScores {
   wouldChooseAgain: boolean;
   comment: string | null;
   createdAt: string;
+  updatedAt: string;
   incentiveScore: number;
   colleagueScore: number;
   managementScore: number;
   cityScore: number;
   educationScore: number;
   academicScore: number;
+  /** Sprint 7: yazarın itibar anlık görüntüsü — doctor_id İÇERMEZ (anonimlik). */
+  authorReviewCount: number;
+  authorHelpfulVotes: number;
+  authorReputationScore: number;
+  authorIsVerified: boolean;
+  /** Sprint 7: bu klinikteki toplam faydalı oy sayısı. */
+  helpfulCount: number;
+  /** Sprint 7: giriş yapmış kullanıcı bu review'ın sahibi mi (düzenle/sil göstermek için). */
+  isMine: boolean;
 }
 
 /** Değerlendirme formundan gönderilen veri. */
@@ -113,6 +123,15 @@ export interface ReviewInput {
   academicScore: number;
 }
 
+/** Sprint 7: kendi itibarın (profil sayfası için) — `get_my_reputation()`. */
+export interface MyReputation {
+  reviewCount: number;
+  helpfulVotes: number;
+  reputationScore: number;
+  isVerified: boolean;
+  memberSince: string;
+}
+
 /** Bir klinik için özet istatistikler (Sprint 6) — `clinic_review_stats` view'ından. */
 export interface ClinicStats {
   reviewCount: number;
@@ -127,6 +146,7 @@ export interface ClinicStats {
   avgDailyPatients: number | null;
   avgServicePatients: number | null;
   recommendPercentage: number | null;
+  totalHelpfulVotes: number;
 }
 
 /** `rank_clinics_by_branch` sonucu — sıralama ve karşılaştırma sayfalarında kullanılır. */

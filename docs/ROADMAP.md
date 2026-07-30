@@ -74,20 +74,30 @@
 - Yeni bağımlılık yok; build/lint/typecheck temiz
 - Detaylar: `docs/SPRINT6.md`
 
-## Sprint 7 (öneri)
+## Sprint 7 — Trust, Moderation & Reputation System ✅ (bu teslimat)
+
+- İtibar sistemi: `doctor_reputation`/`get_my_reputation()`/`review_author_stats` — reputation_score = onaylı yorum×10 + faydalı oy×3. `review_author_stats` **asla doctor_id döndürmez** (anonimlik ile itibar gösterimi arasındaki gerilimin çözümü)
+- Faydalı oy (`review_helpful_votes`, bileşik PK ile tek oy), rapor sistemi (`reports` artık gerçekten aktif, 5 sabit sebep)
+- Review düzenleme/silme (`update_review` RPC, "Düzenlendi" göstergesi), tekrar değerlendirme denemesi artık otomatik düzenlemeye yönlendiriyor
+- Moderasyon: `reviews.status` (pending/approved/rejected), **3+ farklı hekimden rapor alan review otomatik `pending`'e çekiliyor** (moderatör paneli olmadan da moderasyonun bir anlamı olsun diye)
+- `clinic_review_stats` artık yalnızca onaylı review'ları sayıyor + toplam faydalı oy eklendi
+- Gerçek Postgres'te bulunan 2 hata düzeltildi: trigger'da eksik `SECURITY DEFINER`, `anon`'da eksik `doctor_workplaces` grant'i
+- Detaylar: `docs/SPRINT7.md`
+
+## Sprint 8 (öneri)
 
 - Kurum bağlama akışının olgunlaştırılması (şu an review gönderiminde otomatik/doğrulanmamış workplace açılıyor) — SGK hizmet dökümü ile gerçek doğrulama, `is_verified_workplace` alanının gerçekten kullanılması
 - Doğrulama belgesi yükleme akışı (diploma/TTB no) — `doctors.is_verified`'ı gerçekten `true` yapacak süreç
 - Katkı teşviki (ver-gör kilidi + ilk görev muafiyeti)
 
-## Sprint 8 (öneri)
+## Sprint 9 (öneri)
+
+- Moderatör paneli (`reports` kuyruğu + Sprint 7'de biriken `pending` review'ları inceleme) — artık gerçek bir kuyruk var, bu sprint'in önceliği arttı
+
+## Sprint 10 (öneri)
 
 - Aktif hekimle anonim iletişim talebi ve sohbet
 - Bildirimler
-
-## Sprint 9 (öneri)
-
-- Moderatör paneli (`reports` kuyruğu)
 
 ## Sonraki (öneri, önceliklendirilmedi)
 
@@ -96,4 +106,4 @@
 - ISR/statik önbellekleme stratejisinin auth sonrası yeniden gözden geçirilmesi
 - Gerçek "workload score"/"education/academic" boyutları büyük veri hacminde full-text-search + tsvector'a taşınması (arama tarafı için)
 
-> Not: Sprint 7 ve sonrası için kapsam/sıralama bir öneri taslağıdır, bağlayıcı değildir.
+> Not: Sprint 8 ve sonrası için kapsam/sıralama bir öneri taslağıdır, bağlayıcı değildir.

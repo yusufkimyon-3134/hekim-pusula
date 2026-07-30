@@ -18,10 +18,13 @@ import { ReviewRepository } from "@/lib/repositories/review-repository";
 
 export default async function ClinicDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ reported?: string; deleted?: string; shared?: string }>;
 }) {
   const { id } = await params;
+  const { reported, deleted, shared } = await searchParams;
 
   const supabase = await createClient();
   const clinicRepository = new ClinicRepository(supabase);
@@ -36,14 +39,17 @@ export default async function ClinicDetailPage({
     notFound();
   }
 
-  const [reviews, stats] = await Promise.all([
+  const [reviews, stats, ownReviewId] = await Promise.all([
     reviewRepository.findByClinicId(id),
     clinicRepository.getStats(id),
+    userData.user ? reviewRepository.findOwnReviewIdForClinic(id) : Promise.resolve(null),
   ]);
 
-  const reviewHref = userData.user
-    ? `/clinic/${id}/review`
-    : `/login?redirectTo=${encodeURIComponent(`/clinic/${id}/review`)}`;
+  const reviewHref = !userData.user
+    ? `/login?redirectTo=${encodeURIComponent(`/clinic/${id}/review`)}`
+    : ownReviewId
+      ? `/clinic/${id}/review/${ownReviewId}/edit`
+      : `/clinic/${id}/review`;
 
   const hasReviews = reviews.length > 0;
 
@@ -53,6 +59,14 @@ export default async function ClinicDetailPage({
         <ClinicHero branch={clinic.branch} hospital={clinic.hospital} />
 
         <ClinicIntro />
+
+        {(reported || deleted || shared) && (
+          <p className="rounded-md bg-accent px-3 py-2 text-sm text-accent-foreground">
+            {reported && "Raporun alındı, teşekkürler."}
+            {deleted && "Değerlendirmen silindi."}
+            {shared && "Değerlendirmen paylaşıldı, teşekkürler."}
+          </p>
+        )}
 
         <section className="space-y-4">
           <SectionLabel>İstatistikler</SectionLabel>
@@ -87,13 +101,15 @@ export default async function ClinicDetailPage({
             <SectionLabel>Deneyimler ({reviews.length})</SectionLabel>
             {hasReviews && (
               <Button asChild variant="outline" size="sm">
-                <Link href={reviewHref}>Sen de paylaş</Link>
+                <Link href={reviewHref}>
+                  {ownReviewId ? "Değerlendirmeni düzenle" : "Sen de paylaş"}
+                </Link>
               </Button>
             )}
           </div>
 
           {hasReviews ? (
-            <ExperienceTimeline reviews={reviews} />
+            <ExperienceTimeline reviews={reviews} clinicId={id} />
           ) : (
             <ShareExperienceEmptyState reviewHref={reviewHref} />
           )}

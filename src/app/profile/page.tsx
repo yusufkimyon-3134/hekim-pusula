@@ -6,12 +6,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { VerifiedBadge } from "@/components/verified-badge";
+import { ReputationBadge } from "@/components/reputation-badge";
 import { createClient } from "@/lib/supabase/server";
 import { DoctorRepository } from "@/lib/repositories/doctor-repository";
 import { DOCTOR_ROLE_OPTIONS } from "@/lib/doctor-role";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 import { saveProfile } from "./actions";
+
+function formatMemberSince(iso: string): string {
+  return new Date(iso).toLocaleDateString("tr-TR", { year: "numeric", month: "long" });
+}
 
 export default async function ProfilePage({
   searchParams,
@@ -30,22 +34,61 @@ export default async function ProfilePage({
   }
 
   const doctorRepository = new DoctorRepository(supabase);
-  const doctor = await doctorRepository.findById(userData.user.id);
+  const [doctor, reputation] = await Promise.all([
+    doctorRepository.findById(userData.user.id),
+    doctorRepository.getMyReputation(),
+  ]);
 
   return (
     <Container className="py-12">
       <div className="mx-auto max-w-lg space-y-6">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Profilim</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {doctor
-                ? "Bilgilerini güncelle."
-                : "Deneyim paylaşabilmek için profilini tamamla."}
-            </p>
-          </div>
-          {doctor?.isVerified && <VerifiedBadge />}
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Profilim</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {doctor
+              ? "Bilgilerini güncelle."
+              : "Deneyim paylaşabilmek için profilini tamamla."}
+          </p>
         </div>
+
+        {reputation && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Katkı özetin</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <ReputationBadge
+                reviewCount={reputation.reviewCount}
+                helpfulVotes={reputation.helpfulVotes}
+                isVerified={reputation.isVerified}
+                showDetails
+              />
+              <div className="grid grid-cols-3 gap-3 text-center text-xs">
+                <div>
+                  <p className="font-mono text-lg font-semibold">
+                    {reputation.reviewCount}
+                  </p>
+                  <p className="text-muted-foreground">Yazılan yorum</p>
+                </div>
+                <div>
+                  <p className="font-mono text-lg font-semibold">
+                    {reputation.helpfulVotes}
+                  </p>
+                  <p className="text-muted-foreground">Alınan faydalı oy</p>
+                </div>
+                <div>
+                  <p className="font-mono text-lg font-semibold">
+                    {reputation.reputationScore}
+                  </p>
+                  <p className="text-muted-foreground">İtibar puanı</p>
+                </div>
+              </div>
+              <p className="text-center text-xs text-muted-foreground">
+                {formatMemberSince(reputation.memberSince)} tarihinden beri üye
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {redirectTo && !doctor && (
           <p className="rounded-md bg-accent px-3 py-2 text-sm text-accent-foreground">
