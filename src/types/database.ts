@@ -80,9 +80,10 @@ export interface Database {
           id: string;
           doctor_id: string;
           clinic_id: string;
-          start_date: string;
-          end_date: string | null;
+          work_start_date: string;
+          work_end_date: string | null;
           is_current: boolean;
+          is_verified_workplace: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -126,6 +127,7 @@ export interface Database {
           doctor_id: string | null;
           reason: string;
           status: ReportStatus;
+          resolved_at: string | null;
           created_at: string;
           updated_at: string;
         };

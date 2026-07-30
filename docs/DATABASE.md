@@ -1,6 +1,6 @@
 # Hekim Pusula — Veritabanı Şeması
 
-> **Durum:** Sprint 2'de tasarlandı ve **gerçek bir PostgreSQL 16 örneğine karşı doğrulandı** (bu depoda migration olarak mevcut, `supabase/migrations/`). Henüz canlı bir Supabase projesine uygulanmadı — bu, ekibin bir sonraki adımıdır (`supabase link` + `supabase db push`).
+> **Durum:** Sprint 2'de tasarlandı, CTO incelemesi sonrası güncellendi (`doctor_workplaces` alan adları + `is_verified_workplace`, `reports.resolved_at`), ve **gerçek bir PostgreSQL 16 örneğine karşı doğrulandı** (bu depoda migration olarak mevcut, `supabase/migrations/`). Henüz canlı bir Supabase projesine uygulanmadı — bu, ekibin bir sonraki adımıdır (`supabase link` + `supabase db push`).
 >
 > Sprint 1'in taslak `DATABASE.md`'si Türkçe tablo/alan adları kullanıyordu (`kurumlar`, `il`, `brans`...). Bu sürüm, Sprint 2'nin görev tanımında verilen **İngilizce şemayı** esas alır ve onun yerini alır.
 
@@ -55,6 +55,8 @@ Yalnızca kamu hastaneleri kapsamdadır — özel hastane türü enum'da yok, bu
 
 Gerçek ad/soyad/TC hiçbir sütunda tutulmaz — bu, ürünün "anonimlik esas" ilkesinin veritabanı seviyesindeki karşılığıdır.
 
+> **CTO incelemesi notu:** Bu tablo, tasarım aşamasından itibaren zaten yalnızca yukarıdaki 7 alanı içeriyordu — `full_name`, `national_id`, `diploma_number` gibi kişisel veri hiçbir zaman şemaya eklenmedi. Kimlik doğrulama (Sprint 3+) tasarlanırken, doğrulama belgesi (diploma/TTB no) *işlenip* kalıcı olarak *saklanmayacak* şekilde kurgulanmalı — örneğin geçici bir dosya deposunda tutulup onay sonrası silinmeli, bu tabloya asla bir "belge" veya "kimlik" sütunu eklenmemeli.
+
 ### `doctor_workplaces`
 
 | Alan | Tip | Not |
@@ -62,18 +64,27 @@ Gerçek ad/soyad/TC hiçbir sütunda tutulmaz — bu, ürünün "anonimlik esas"
 | id | uuid, PK | |
 | doctor_id | uuid, FK → doctors | on delete cascade |
 | clinic_id | uuid, FK → clinics | **on delete restrict** |
-| start_date | date | |
-| end_date | date, null olabilir | null = hâlâ çalışıyor |
+| work_start_date | date | |
+| work_end_date | date, null olabilir | null = hâlâ çalışıyor |
 | is_current | boolean | |
+| is_verified_workplace | boolean | Bu çalışma iddiasının belge ile doğrulanıp doğrulanmadığı |
 | created_at, updated_at | timestamptz | |
 
-**İki CHECK kısıtı:**
-- `end_date is null or end_date >= start_date` — mantıksız tarih aralığını engeller
-- `is_current = (end_date is null)` — bu iki alanın birbirinden bağımsız güncellenip tutarsız kalmasını (klasik bir veri bütünlüğü hatası) veritabanı seviyesinde imkansız kılar
+> **CTO incelemesi notu — alan adları değişti:** `start_date`/`end_date`, `work_start_date`/`work_end_date` olarak yeniden adlandırıldı (bu tablonun *iş* ile ilgili tarihleri tuttuğunu netleştirmek için — ör. `reviews` gibi başka bir tabloda ileride genel bir "date" alanı olursa karışıklık olmasın diye). `is_verified_workplace` yeni eklendi.
 
-**Kısmi UNIQUE indeks:** `(doctor_id, clinic_id) WHERE is_current` — bir hekimin aynı klinikte aynı anda yalnızca bir "aktif" çalışma kaydı olabilir. **Gerçek Postgres'te test edildi.**
+**`is_verified_workplace` neden `doctors.is_verified`'tan ayrı:** bir hekimin genel kimliği (gerçekten hekim olduğu) doğrulanmış olabilir, ama *belirli bir kurumda çalıştığı* iddiası ayrıca doğrulanmamış olabilir (örn. SGK hizmet dökümü henüz incelenmedi). Bu iki doğrulama farklı belgelere ve farklı zamanlamaya sahiptir, bu yüzden ayrı sütunlar olarak modellendi.
+
+**İki CHECK kısıtı:**
+- `work_end_date is null or work_end_date >= work_start_date` — mantıksız tarih aralığını engeller
+- `is_current = (work_end_date is null)` — bu iki alanın birbirinden bağımsız güncellenip tutarsız kalmasını (klasik bir veri bütünlüğü hatası) veritabanı seviyesinde imkansız kılar
+
+**Kısmi UNIQUE indeks:** `(doctor_id, clinic_id) WHERE is_current` — bir hekimin aynı klinikte aynı anda yalnızca bir "aktif" çalışma kaydı olabilir. **Gerçek Postgres'te test edildi** (alan adı değişikliğinden sonra da).
+
+**Ek kısmi indeks:** `(clinic_id) WHERE is_current and is_verified_workplace` — kurum sayfasındaki "aktif ve doğrulanmış hekim var mı" sorgusu sık çalışacağı için.
 
 **Neden `on delete restrict` (cascade değil):** klinikler referans/master veridir. Bir kliniğin silinmesi, üzerinde çalışma geçmişi olan hekimlerin verisini sessizce yok etmemeli. Bu, `hospitals → clinics` cascade'iyle birleşince şu korumayı sağlar: bir hastane silinirse klinikleri de silinir (cascade), *ama* o kliniklerden herhangi birinde çalışma geçmişi/değerlendirme varsa tüm silme işlemi bir bütün olarak başarısız olur — kazara toplu veri kaybına karşı bir güvenlik ağı.
+
+**Tekrar etmeme kuralı:** çalışma dönemi bilgisi (tarihler, aktiflik) yalnızca bu tabloda tutulur; `reviews` tablosunda asla kopyalanmaz (bkz. aşağıda).
 
 ### `reviews`
 
@@ -96,6 +107,8 @@ Gerçek ad/soyad/TC hiçbir sütunda tutulmaz — bu, ürünün "anonimlik esas"
 2. Aynı hekimin (farklı `doctor_workplace` kayıtları üzerinden bile olsa) aynı klinik için başka bir değerlendirmesi var mı (tekillik kuralı)
 
 **Her iki senaryo da gerçek Postgres'te test edildi** — yanlış `clinic_id` ile ekleme ve aynı klinik için ikinci değerlendirme denemesi doğru şekilde reddedildi.
+
+> **CTO incelemesi notu:** Bu tablo hiçbir zaman çalışma dönemi tarihi (`start_date`/`end_date` benzeri) içermedi — tarih bilgisi yalnızca `doctor_workplaces`'te tutulur, burada kopyalanmaz. "Bir hekim bir klinik için tek aktif değerlendirme" kuralı zaten yukarıdaki trigger ile karşılanıyordu, bu incelemede ek bir değişiklik gerekmedi.
 
 ### `review_scores`
 
@@ -129,9 +142,14 @@ Gerçek ad/soyad/TC hiçbir sütunda tutulmaz — bu, ürünün "anonimlik esas"
 | doctor_id | uuid, FK → doctors, **null olabilir** | on delete **set null** |
 | reason | text | |
 | status | enum `report_status` | pending / reviewed / dismissed / action_taken |
+| resolved_at | timestamptz, null olabilir | Moderatörün raporu sonuçlandırdığı an |
 | created_at, updated_at | timestamptz | |
 
 `doctor_id` kasıtlı olarak nullable ve `on delete set null`: bildiren hekimin hesabı silinse bile moderasyon kaydı (sebep, durum, tarih) korunur — yalnızca "kim bildirdi" bilgisi kaybolur.
+
+**`resolved_at` (CTO incelemesinde eklendi):** gelecekteki moderasyon araçlarını desteklemek için. İki CHECK kısıtıyla `status` ile tutarlılığı zorlanıyor: `status = 'pending'` iken `resolved_at` **null olmalı**, `status <> 'pending'` iken (reviewed/dismissed/action_taken) `resolved_at` **dolu olmalı**. Bu, "sonuçlandırılmış ama ne zaman sonuçlandığı bilinmiyor" ya da "beklemede ama sonuç tarihi girilmiş" gibi tutarsız durumları veritabanı seviyesinde imkansız kılar — her iki senaryo da **gerçek Postgres'te test edildi**.
+
+Ek indeks: `(created_at) WHERE resolved_at is null` — moderasyon kuyruğunun ("bekleyen raporları en eskiden yeniye listele") sık çalışacak sorgusu için.
 
 ## created_at/updated_at tutarlılığı
 

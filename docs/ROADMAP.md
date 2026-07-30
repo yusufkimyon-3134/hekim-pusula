@@ -26,6 +26,8 @@
 - `docs/DATABASE.md` (güncellendi, İngilizce şemaya geçildi), `docs/ARCHITECTURE.md` (yeni)
 - Build/lint/typecheck doğrulandı
 
+*(CTO code review sonrası: `doctors` tablosunun hiç kişisel veri içermediği teyit edildi; `doctor_workplaces` alan adları `work_start_date`/`work_end_date` olarak netleştirildi ve `is_verified_workplace` eklendi; `reports.resolved_at` eklendi (status ile tutarlılığı CHECK ile zorlanıyor) — "Sprint 2 - CTO Review Fixes" commit'i.)*
+
 ## Sprint 3 (öneri — henüz başlanmadı)
 
 - Kimlik doğrulama (Supabase Auth, hekim kaydı, diploma/TTB no belge yükleme akışı)
