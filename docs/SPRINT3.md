@@ -32,7 +32,7 @@ Hiçbir sayfa/bileşen Supabase'i doğrudan çağırmıyor; hepsi bu iki reposit
 
 ### Neden bir RPC fonksiyonu (`search_clinics`) gerekti
 
-Klinik araması, `clinics` ile `hospitals`'ı join'leyip her ikisinin sütunlarında OR araması gerektiriyor. PostgREST'in embedded resource'lar (join'lenmiş tablolar) üzerinde `or()` filtrelemesi, tek tablo üzerindeki `or()` kadar net/güvenilir değil. Bunun yerine, tamamen kontrol edilebilir ve **gerçek Postgres'te test edilmiş** bir SQL fonksiyonu (`search_clinics`) yazıldı, `supabase.rpc()` ile çağrılıyor. Hastane araması tek tablo olduğu için sorunsuz şekilde düz PostgREST `or()` zincirlemesiyle yapıldı.
+Klinik araması, `clinics` ile `hospitals`'ı join'leyip her ikisinin sütunlarında OR araması gerektiriyor. PostgREST'in embedded resource'lar (join'lenmiş tablolar) üzerinde `or()` filtrelemesi, tek tablo üzerindeki `or()` kadar net/güvenilir değil. Bunun yerine, tamamen kontrol edilebilir ve **gerçek Postgres'te test edilmiş** bir SQL fonksiyonu (`search_clinics`) yazıldı, `supabase.rpc()` ile çağrılıyor. Hastane araması başlangıçta tek tablo olduğu için düz PostgREST `or()` zincirlemesiyle yapılmıştı; ikinci geçişte (alaka sıralaması gerektiği için, bkz. aşağıda) o da bir RPC fonksiyonuna (`search_hospitals`) taşındı.
 
 ### Önemli teknik not: `database.ts` tipleri yeniden yazıldı
 
@@ -51,10 +51,46 @@ Kurulu `@supabase/supabase-js` (2.111.0) paketinin tip sistemi, her tabloda `Ins
 - Ana sayfa, hastane/klinik detay sayfaları `export const revalidate = 3600` ile ISR kullanıyor — nadiren değişen referans veri için her istekte veritabanına gitmek yerine saatte bir yenilenen önbellek
 - Filtre formu native `<select>` kullanıyor, JS gerektiren bir client component (Radix Select) değil — "gereksiz client-side render'dan kaçın" gereksinimi için bilinçli tercih
 
+## Sprint 3 ikinci geçiş — "Smart Hospital Search" (CTO isteği üzerine)
+
+İlk teslimattan sonra iki gerçek eksik kapatıldı:
+
+### Alaka düzeyine göre sıralama
+
+Önceden sonuçlar yalnızca alfabetik sıralıydı. Artık `search_hospitals` ve `search_clinics` fonksiyonları, `pg_trgm`'in `similarity()` fonksiyonuyla her kelime için ilgili alanlardaki en iyi benzerlik skorunu topluyor ve sonuçları bu skora göre (büyükten küçüğe) sıralıyor. Eşit skorlarda isim alfabetik sıraya düşüyor (deterministik ikincil sıralama).
+
+Bu bilinçli bir mimari tercih: tam bir `tsvector`/ağırlıklı full-text-search altyapısı (generated column + GIN indeks) daha "doğru" bir uzun vadeli çözüm olurdu, ama bu aşamada `pg_trgm` (zaten Sprint 2'den beri kurulu) hem yeterli hem de test edilmesi çok daha basit. İleride veri büyüdükçe full-text search'e geçiş `ROADMAP.md`'ye not düşüldü.
+
+### Branş eşanlamlıları — "dahiliye" artık gerçekten çalışıyor
+
+Yeni `branch_synonyms` tablosu (`synonym → official_branch`), günlük dilde kullanılan terimleri resmi branş adlarına eşliyor:
+
+| Günlük terim | Resmi branş |
+|---|---|
+| dahiliye | İç Hastalıkları |
+| kbb | Kulak Burun Boğaz |
+| kadın doğum, jinekoloji | Kadın Hastalıkları ve Doğum |
+| ortopedi | Ortopedi ve Travmatoloji |
+| göz | Göz Hastalıkları |
+| çocuk, pediatri | Çocuk Sağlığı ve Hastalıkları |
+
+`search_clinics`, bir kelimeyi branşla doğrudan karşılaştırmanın yanında bu tabloya da bakıyor. `RLS` açık, herkes okuyabiliyor (fonksiyon `SECURITY INVOKER` olduğu için çağıran rolün bu tabloyu görebilmesi gerekiyor — `anon` rolüyle test edilip doğrulandı).
+
+**Gerçek Postgres'te doğrulanan örnekler** (Sprint 3 talimatındaki tüm örnekler):
+- `"Hatay dahiliye"` → Hatay Devlet Hastanesi'nin İç Hastalıkları kliniğini buluyor (eşanlamlı sayesinde)
+- `"Reyhanlı"` → 0 sonuç (seed verisinde bu ilçe yok — gerçek veriyle dürüst, uydurma sonuç yok)
+- `"Konya göz"` → Konya Eğitim ve Araştırma Hastanesi'nin Göz Hastalıkları kliniğini buluyor
+- `"Ankara şehir kardiyoloji"` → Ankara Şehir Hastanesi'nin Kardiyoloji kliniğini buluyor
+
+### Filtrelerin opsiyonel olduğu teyidi
+
+Hem `search_hospitals` hem `search_clinics`, `search_query`/`filter_city`/`filter_hospital_type` parametrelerinin hepsini `default null` ile tanımlıyor — kullanıcı hiçbir filtre seçmeden yalnızca metin araması yapabiliyor (zaten ilk teslimattan beri böyleydi, bu geçişte bozulmadığı yeniden doğrulandı).
+
 ## Test yaklaşımı
 
-1. **SQL/RPC/view:** gerçek PostgreSQL 16'ya karşı test edildi ("Konya Göz", "Hatay" gibi senaryolar + RLS altında `anon` rolüyle).
-2. **PostgREST `or()` zincirleme davranışı:** canlı bir PostgREST sunucusu bu sandbox'ta mevcut olmadığı için, kurulu `@supabase/postgrest-js` paketinin kaynak kodu incelenerek doğrulandı (her `.or()` çağrısı ayrı bir `or` URL parametresi ekliyor; PostgREST'in belgelenmiş davranışı gereği tekrarlanan parametreler AND ile birleşir).
-3. **Uygulama kodu:** `tsc --noEmit`, `next lint`, `npm run build` — hepsi temiz.
+1. **SQL/RPC/view:** gerçek PostgreSQL 16'ya karşı test edildi — hem ilk teslimatın senaryoları hem de bu geçişteki alaka sıralaması ve eşanlamlı sözlüğü, gerçek verilerle ve `anon` rolüyle (RLS altında) doğrulandı.
+2. **Uygulama kodu:** `tsc --noEmit`, `next lint`, `npm run build` — hepsi temiz.
+
+**Not:** Hastane araması da bu geçişte (alaka sıralaması gerektiği için) düz PostgREST `or()` zincirlemesinden `search_hospitals` RPC fonksiyonuna taşındı — artık hem hastane hem klinik araması aynı desenle (RPC) çalışıyor, tutarlılık için iyi.
 
 **Yapılamayan:** gerçek bir Supabase projesine karşı uçtan uca canlı test (bu sandbox'ta Docker/gerçek proje yok). Deploy öncesi ekip tarafından `npm run dev` + gerçek `.env.local` ile doğrulanmalı.

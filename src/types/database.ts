@@ -262,6 +262,20 @@ export interface Database {
       };
     };
     Functions: {
+      search_hospitals: {
+        Args: {
+          search_query?: string | null;
+          filter_city?: string | null;
+          filter_hospital_type?: HospitalType | null;
+        };
+        Returns: {
+          id: string;
+          name: string;
+          city: string;
+          district: string;
+          hospital_type: HospitalType;
+        }[];
+      };
       search_clinics: {
         Args: {
           search_query?: string | null;

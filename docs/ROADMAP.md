@@ -40,6 +40,8 @@
 
 **Bilinen sınır / Sprint sonrası takip:** Arama harfi harfine çalışıyor, branş eşanlamlıları (Dahiliye ↔ İç Hastalıkları gibi) tanımıyor. İleride bir "branş eşanlamlıları" tablosu/mapping'i eklenmeli.
 
+*(İkinci geçiş — "Smart Hospital Search": sonuçlar artık `pg_trgm` `similarity()` ile alaka düzeyine göre sıralanıyor (önceden yalnızca alfabetikti); yeni `branch_synonyms` tablosu günlük dildeki terimleri ("dahiliye" → "İç Hastalıkları") çözüyor — yukarıdaki bilinen sınır artık kısmen kapandı. Hastane araması da tutarlılık için RPC'ye taşındı. Detaylar `docs/SPRINT3.md`'de — "Sprint 3 - Smart Hospital Search" commit'i. İleride veri büyüdükçe tam bir `tsvector` full-text-search'e geçiş düşünülebilir.)*
+
 ## Sprint 4 (öneri)
 
 - Kimlik doğrulama (Supabase Auth, hekim kaydı, diploma/TTB no belge yükleme akışı)

@@ -1,12 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import type { CityCount, Hospital, HospitalSearchParams } from "@/types";
-import { tokenize } from "@/lib/search-tokens";
 
 type HospitalRow = Database["public"]["Tables"]["hospitals"]["Row"];
 type CityCountRow = Database["public"]["Views"]["hospital_city_counts"]["Row"];
+type SearchHospitalsRow = Database["public"]["Functions"]["search_hospitals"]["Returns"][number];
 
-function toHospital(row: HospitalRow): Hospital {
+function toHospital(row: HospitalRow | SearchHospitalsRow): Hospital {
   return {
     id: row.id,
     name: row.name,
@@ -29,26 +29,20 @@ export class HospitalRepository {
 
   /**
    * İsim, il veya ilçeye göre çok kelimeli arama (her kelime en az bir
-   * alanda eşleşmeli) + isteğe bağlı il/hastane türü filtresi.
+   * alanda eşleşmeli) + isteğe bağlı il/hastane türü filtresi. Sonuçlar
+   * alaka düzeyine göre sıralanır (bkz. `search_hospitals` RPC — pg_trgm
+   * similarity() kullanır). Alaka sıralaması, çoklu alan/tablo üzerinde
+   * hesaplandığı ve düz PostgREST filtreleriyle ifade edilemediği için
+   * bir Postgres fonksiyonuna delege edilir (`ClinicRepository.search`
+   * ile aynı desen).
    */
   async search(params: HospitalSearchParams = {}): Promise<Hospital[]> {
-    let request = this.client.from("hospitals").select("*").order("name");
+    const { data, error } = await this.client.rpc("search_hospitals", {
+      search_query: params.query ?? null,
+      filter_city: params.city ?? null,
+      filter_hospital_type: params.hospitalType ?? null,
+    });
 
-    if (params.city) {
-      request = request.eq("city", params.city);
-    }
-    if (params.hospitalType) {
-      request = request.eq("hospital_type", params.hospitalType);
-    }
-
-    for (const token of tokenize(params.query)) {
-      const pattern = `%${token}%`;
-      request = request.or(
-        `name.ilike.${pattern},city.ilike.${pattern},district.ilike.${pattern}`
-      );
-    }
-
-    const { data, error } = await request;
     if (error) {
       throw new Error(`Hastaneler getirilemedi: ${error.message}`);
     }
