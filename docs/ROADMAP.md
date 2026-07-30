@@ -1,46 +1,54 @@
 # Hekim Pusula — Roadmap
 
-## Sprint 1 — Foundation ✅ (bu teslimat)
+## Sprint 1 — Foundation ✅
 
 - Next.js 15 (App Router) + TypeScript + Tailwind CSS v4 kurulumu
 - shadcn/ui temel bileşenleri (Button, Card, Input, Label, Badge)
-- Supabase istemcileri (browser + server) — yalnızca bağlantı katmanı, henüz kullanılmıyor
+- Supabase istemcileri (browser + server) — bağlantı katmanı
 - TanStack Query provider kurulumu
-- React Hook Form + Zod bağımlılıkları kuruldu (henüz forma bağlanmadı)
-- Ölçeklenebilir klasör mimarisi (`components`, `features`, `lib`, `types`, `hooks`)
+- React Hook Form + Zod bağımlılıkları
+- Ölçeklenebilir klasör mimarisi
 - Placeholder sayfalar: Ana Sayfa, Arama, Hastane Detay, Klinik Detay
-- Marka tasarım sistemi (renk token'ları, tipografi) `globals.css` içinde
+- Marka tasarım sistemi
 - Production build doğrulandı
 
-## Sprint 2 (öneri — henüz başlanmadı)
+*(CTO code review sonrası: env doğrulama, CardTitle/CardDescription semantik düzeltmesi, next/link kullanımı, tip tutarlılığı, DetailPageHeader ortak bileşeni — "Sprint 1 - CTO Review Fixes" commit'i.)*
 
-- Supabase şemasının migration olarak yazılması (bkz. `DATABASE.md`)
-- Kurum arama sayfasının gerçek veriyle çalışması (statik placeholder yerine)
-- Hastane/klinik detay sayfalarının Supabase'den veri çekmesi
+## Sprint 2 — Database Foundation ✅ (bu teslimat)
 
-## Sprint 3 (öneri)
+- 8 tablo için migration: `hospitals`, `clinics`, `doctors`, `doctor_workplaces`, `reviews`, `review_scores`, `favorites`, `reports`
+- UUID PK, doğru FK'ler (cascade/restrict/set null — gerekçesi `ARCHITECTURE.md`'de), useful indeksler (b-tree + trigram)
+- Her tabloda RLS etkin; `hospitals`/`clinics` herkese açık okunur, diğerleri kimlik doğrulama gelene kadar kilitli placeholder politika
+- `reviews` için tutarlılık + tekillik trigger'ı (`enforce_review_consistency`)
+- Migration'lar ve iş kuralları **gerçek bir PostgreSQL 16 örneğine karşı test edildi** (bu sandbox'ta geçici olarak kuruldu)
+- Seed data: 20 kamu hastanesi, 15 farklı şehir, 160 klinik
+- `HospitalRepository`, `ClinicRepository` — arama sayfası artık hardcode veri değil, gerçek repository kullanıyor
+- `docs/DATABASE.md` (güncellendi, İngilizce şemaya geçildi), `docs/ARCHITECTURE.md` (yeni)
+- Build/lint/typecheck doğrulandı
 
-- Kimlik doğrulama (hekim kaydı, diploma/TTB no belge yükleme akışı)
-- Kurum bağlama (SGK hizmet dökümü ile "aktif/önceden çalıştı" rozeti)
+## Sprint 3 (öneri — henüz başlanmadı)
+
+- Kimlik doğrulama (Supabase Auth, hekim kaydı, diploma/TTB no belge yükleme akışı)
+- `doctors`/`reviews` RLS placeholder politikalarının gerçek kurallarla değiştirilmesi
+- Kurum bağlama (SGK hizmet dökümü ile "aktif/önceden çalıştı" rozeti) → `doctor_workplaces` doldurulması
 
 ## Sprint 4 (öneri)
 
-- Yorum/puanlama sistemi (kategori bazlı puanlama + serbest metin)
+- Yorum/puanlama yazma akışı (`reviews`, `review_scores` repository'leri ve UI)
 - Katkı teşviki (ver-gör kilidi + ilk görev muafiyeti)
 
 ## Sprint 5 (öneri)
 
 - Aktif hekimle anonim iletişim talebi ve sohbet
-- Bildirimler (talep yanıtı, doğrulama sonucu)
+- Bildirimler
 
 ## Sprint 6 (öneri)
 
-- Moderatör paneli (belge onay/red, yorum şikayeti inceleme)
-- Moderasyon kuyruğu ve SLA takibi
+- Moderatör paneli (`reports` kuyruğu)
 
 ## Sonraki (öneri, önceliklendirilmedi)
 
-- YHGM kontenjan verisinin otomatik çekilmesi (bkz. ayrı `parse_kontenjan.py` scripti)
-- Atama türüne göre kişiselleştirilmiş bildirimler (kura takvimi)
+- YHGM kontenjan verisinin otomatik çekilmesi
+- Atama türüne göre kişiselleştirilmiş bildirimler
 
-> Not: Sprint 2 ve sonrası için kapsam, sıralama ve tahmini süre bu dokümanın ilk halinde netleştirilmemiştir — ekip içinde önceliklendirme yapılması gerekir. Bu roadmap bir öneri taslağıdır, bağlayıcı bir plan değildir.
+> Not: Sprint 3 ve sonrası için kapsam/sıralama bir öneri taslağıdır, bağlayıcı değildir.

@@ -2,23 +2,14 @@ import Link from "next/link";
 import { Container } from "@/components/layout/container";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { Kurum } from "@/types";
-
-// Sprint 1: statik placeholder veri. Gerçek arama/sıralama sonraki
-// sprintlerde Supabase sorgularıyla değiştirilecek. `Kurum` tipini
-// kullanmak, gerçek veri bağlandığında şeklin tutarlı kalmasını sağlar.
-const placeholderResults: Kurum[] = [
-  { id: "1", ad: "Devlet Hastanesi", il: "Ağrı", ilce: "Merkez" },
-  { id: "2", ad: "Eğitim ve Araştırma Hastanesi", il: "Kocaeli", ilce: "İzmit" },
-  { id: "3", ad: "Devlet Hastanesi", il: "Muş", ilce: "Bulanık" },
-];
+import { createClient } from "@/lib/supabase/server";
+import { HospitalRepository } from "@/lib/repositories/hospital-repository";
 
 export default async function SearchPage({
   searchParams,
@@ -26,6 +17,10 @@ export default async function SearchPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q } = await searchParams;
+
+  const supabase = await createClient();
+  const hospitalRepository = new HospitalRepository(supabase);
+  const results = await hospitalRepository.search(q);
 
   return (
     <Container className="py-10">
@@ -44,21 +39,27 @@ export default async function SearchPage({
         <Button type="submit">Ara</Button>
       </form>
 
-      <div className="mt-8 space-y-3">
-        {placeholderResults.map((kurum) => (
-          <Card key={kurum.id}>
-            <CardHeader className="flex-row items-center justify-between space-y-0">
-              <div>
-                <CardTitle className="text-base">{kurum.ad}</CardTitle>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {kurum.ilce}, {kurum.il}
-                </p>
-              </div>
-              <Badge variant="secondary">Placeholder</Badge>
+      <p className="mt-6 text-xs text-muted-foreground">
+        {results.length} sonuç
+      </p>
+
+      <div className="mt-2 space-y-3">
+        {results.length === 0 && (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            Sonuç bulunamadı.
+          </p>
+        )}
+        {results.map((hospital) => (
+          <Card key={hospital.id}>
+            <CardHeader>
+              <CardTitle className="text-base">{hospital.name}</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {hospital.district}, {hospital.city}
+              </p>
             </CardHeader>
             <CardContent>
               <Button asChild variant="outline" size="sm">
-                <Link href={`/hospital/${kurum.id}`}>Detayı gör</Link>
+                <Link href={`/hospital/${hospital.id}`}>Detayı gör</Link>
               </Button>
             </CardContent>
           </Card>

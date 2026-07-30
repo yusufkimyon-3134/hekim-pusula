@@ -1,15 +1,17 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { env } from "@/lib/env";
+import { getEnv } from "@/lib/env";
+import type { Database } from "@/types/database";
 
 /**
  * Server component / route handler'lardan kullanılacak Supabase istemcisi.
- * Sprint 1 kapsamında yalnızca bağlantı katmanı hazırlanıyor.
+ * Sprint 2'de gerçek `Database` tipiyle güçlendirildi.
  */
 export async function createClient() {
   const cookieStore = await cookies();
+  const env = getEnv();
 
-  return createServerClient(
+  return createServerClient<Database>(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
