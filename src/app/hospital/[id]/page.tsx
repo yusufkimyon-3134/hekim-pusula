@@ -1,14 +1,15 @@
+import { notFound } from "next/navigation";
 import { Container } from "@/components/layout/container";
 import { DetailPageHeader } from "@/components/layout/detail-page-header";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { ClinicCard } from "@/features/clinic/components/clinic-card";
+import { createClient } from "@/lib/supabase/server";
+import { HospitalRepository } from "@/lib/repositories/hospital-repository";
+import { ClinicRepository } from "@/lib/repositories/clinic-repository";
+import { HOSPITAL_TYPE_LABELS } from "@/lib/hospital-type";
 
-// Sprint 1: statik placeholder. Gerçek veri çekme (Supabase) ve
-// puanlama/yorum bileşenleri sonraki sprintlerde eklenecek.
+// Hastane/klinik referans verisi nadiren değişir — 1 saatlik ISR.
+export const revalidate = 3600;
+
 export default async function HospitalDetailPage({
   params,
 }: {
@@ -16,39 +17,45 @@ export default async function HospitalDetailPage({
 }) {
   const { id } = await params;
 
+  const supabase = await createClient();
+  const hospitalRepository = new HospitalRepository(supabase);
+  const clinicRepository = new ClinicRepository(supabase);
+
+  const hospital = await hospitalRepository.findById(id);
+  if (!hospital) {
+    notFound();
+  }
+
+  const clinics = await clinicRepository.findByHospitalId(id);
+
   return (
     <Container className="py-10">
       <DetailPageHeader
-        title="Hastane detayı"
-        subtitle={
-          <>
-            Kurum kimliği: <span className="font-mono">{id}</span>
-          </>
-        }
-        badgeLabel="Sprint 1 — placeholder"
+        title={hospital.name}
+        subtitle={`${hospital.district}, ${hospital.city}`}
+        badgeLabel={HOSPITAL_TYPE_LABELS[hospital.hospitalType]}
       />
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Klinikler</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Bu kuruma bağlı klinik/branş listesi burada görünecek.
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Deneyim paylaşımları</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Puanlama ve yorumlar sonraki sprintte eklenecek.
-            </p>
-          </CardContent>
-        </Card>
+      <div className="mt-8">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Klinikler ({clinics.length})
+        </h2>
+
+        {clinics.length === 0 ? (
+          <p className="mt-4 text-sm text-muted-foreground">
+            Bu hastane için henüz kayıtlı klinik yok.
+          </p>
+        ) : (
+          <div className="mt-3 space-y-3">
+            {clinics.map((clinic) => (
+              <ClinicCard
+                key={clinic.id}
+                branch={clinic.branch}
+                href={`/clinic/${clinic.id}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </Container>
   );

@@ -2,9 +2,9 @@ import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 
 /**
- * Hastane/klinik detay sayfalarındaki ortak başlık bloğu.
- * Sprint 1'de `hospital/[id]` ve `clinic/[id]` sayfaları birebir aynı
- * işaretlemeyi tekrarlıyordu; bu bileşen tek kaynak haline getiriyor.
+ * Hastane/klinik detay sayfalarındaki ortak başlık bloğu. `badgeLabel`
+ * opsiyonel: hastane detayında hastane türü rozeti için kullanılır,
+ * klinik detayında (rozet olmadığı için) atlanır.
  */
 export function DetailPageHeader({
   title,
@@ -13,7 +13,7 @@ export function DetailPageHeader({
 }: {
   title: string;
   subtitle: ReactNode;
-  badgeLabel: string;
+  badgeLabel?: string;
 }) {
   return (
     <div className="flex items-start justify-between gap-4">
@@ -21,7 +21,11 @@ export function DetailPageHeader({
         <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
       </div>
-      <Badge variant="secondary">{badgeLabel}</Badge>
+      {badgeLabel && (
+        <Badge variant="secondary" className="shrink-0">
+          {badgeLabel}
+        </Badge>
+      )}
     </div>
   );
 }

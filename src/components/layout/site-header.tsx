@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Container } from "@/components/layout/container";
+import { LogoMark } from "@/components/logo-mark";
 
 const navItems = [
   { href: "/", label: "Ana sayfa" },
@@ -11,11 +12,7 @@ export function SiteHeader() {
     <header className="border-b border-border bg-primary text-primary-foreground">
       <Container className="flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-semibold">
-          <span
-            className="inline-block h-6 w-6 rounded-full border-2"
-            style={{ borderColor: "var(--color-ring)" }}
-            aria-hidden="true"
-          />
+          <LogoMark className="h-6 w-6 text-[color:var(--color-ring)]" />
           <span>Hekim Pusula</span>
         </Link>
         <nav aria-label="Ana menü" className="flex items-center gap-6 text-sm">

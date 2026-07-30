@@ -1,8 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
-import type { Hospital } from "@/types";
+import type { CityCount, Hospital, HospitalSearchParams } from "@/types";
+import { tokenize } from "@/lib/search-tokens";
 
 type HospitalRow = Database["public"]["Tables"]["hospitals"]["Row"];
+type CityCountRow = Database["public"]["Views"]["hospital_city_counts"]["Row"];
 
 function toHospital(row: HospitalRow): Hospital {
   return {
@@ -14,25 +16,33 @@ function toHospital(row: HospitalRow): Hospital {
   };
 }
 
+function toCityCount(row: CityCountRow): CityCount {
+  return { city: row.city, hospitalCount: row.hospital_count };
+}
+
 /**
  * `hospitals` tablosuna erişim katmanı. Sayfalar/route'lar bu tablodan
- * doğrudan Supabase sorgusu yazmak yerine bu repository'yi kullanır —
- * böylece sorgu mantığı tek bir yerde toplanır ve `hospitals`in DB
- * şekli (snake_case) uygulama katmanına sızmaz.
+ * doğrudan Supabase sorgusu yazmak yerine bu repository'yi kullanır.
  */
 export class HospitalRepository {
   constructor(private readonly client: SupabaseClient<Database>) {}
 
   /**
-   * İsim, il veya ilçeye göre arar. `query` boşsa tüm hastaneleri
-   * (isme göre sıralı) döner.
+   * İsim, il veya ilçeye göre çok kelimeli arama (her kelime en az bir
+   * alanda eşleşmeli) + isteğe bağlı il/hastane türü filtresi.
    */
-  async search(query?: string): Promise<Hospital[]> {
+  async search(params: HospitalSearchParams = {}): Promise<Hospital[]> {
     let request = this.client.from("hospitals").select("*").order("name");
 
-    const trimmed = query?.trim();
-    if (trimmed) {
-      const pattern = `%${trimmed}%`;
+    if (params.city) {
+      request = request.eq("city", params.city);
+    }
+    if (params.hospitalType) {
+      request = request.eq("hospital_type", params.hospitalType);
+    }
+
+    for (const token of tokenize(params.query)) {
+      const pattern = `%${token}%`;
       request = request.or(
         `name.ilike.${pattern},city.ilike.${pattern},district.ilike.${pattern}`
       );
@@ -56,5 +66,33 @@ export class HospitalRepository {
       throw new Error(`Hastane getirilemedi: ${error.message}`);
     }
     return data ? toHospital(data) : null;
+  }
+
+  /** Şehir başına hastane sayısı, en çoktan aza — ana sayfadaki "öne çıkan şehirler" için. */
+  async listFeaturedCities(limit: number): Promise<CityCount[]> {
+    const { data, error } = await this.client
+      .from("hospital_city_counts")
+      .select("*")
+      .order("hospital_count", { ascending: false })
+      .order("city", { ascending: true })
+      .limit(limit);
+
+    if (error) {
+      throw new Error(`Öne çıkan şehirler getirilemedi: ${error.message}`);
+    }
+    return (data ?? []).map(toCityCount);
+  }
+
+  /** Tüm şehirler, alfabetik — arama sayfasındaki şehir filtresi için. */
+  async listAllCities(): Promise<CityCount[]> {
+    const { data, error } = await this.client
+      .from("hospital_city_counts")
+      .select("*")
+      .order("city", { ascending: true });
+
+    if (error) {
+      throw new Error(`Şehir listesi getirilemedi: ${error.message}`);
+    }
+    return (data ?? []).map(toCityCount);
   }
 }

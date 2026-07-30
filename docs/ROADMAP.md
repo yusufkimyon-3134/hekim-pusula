@@ -28,14 +28,23 @@
 
 *(CTO code review sonrası: `doctors` tablosunun hiç kişisel veri içermediği teyit edildi; `doctor_workplaces` alan adları `work_start_date`/`work_end_date` olarak netleştirildi ve `is_verified_workplace` eklendi; `reports.resolved_at` eklendi (status ile tutarlılığı CHECK ile zorlanıyor) — "Sprint 2 - CTO Review Fixes" commit'i.)*
 
-## Sprint 3 (öneri — henüz başlanmadı)
+## Sprint 3 — Hospital & Clinic Discovery ✅ (bu teslimat)
+
+- Ana sayfa: hero, büyük arama kutusu, gerçek veriden "öne çıkan şehirler"
+- Global arama: çok kelimeli, akıllı (hastane adı + il + ilçe + branş, kelimeler arası AND / alanlar arası OR)
+- Filtreler: şehir, hastane türü
+- Hastane detay: gerçek veri + klinik listesi; klinik detay: gerçek veri + "Henüz değerlendirme yok."
+- `HospitalRepository`/`ClinicRepository` genişletildi; yeni `search_clinics` RPC fonksiyonu + `hospital_city_counts` view
+- Server Component + `loading.tsx`/`error.tsx` her rotada; ISR (`revalidate`) ile gereksiz DB sorgusu azaltıldı
+- Detaylar: `docs/SPRINT3.md`
+
+**Bilinen sınır / Sprint sonrası takip:** Arama harfi harfine çalışıyor, branş eşanlamlıları (Dahiliye ↔ İç Hastalıkları gibi) tanımıyor. İleride bir "branş eşanlamlıları" tablosu/mapping'i eklenmeli.
+
+## Sprint 4 (öneri)
 
 - Kimlik doğrulama (Supabase Auth, hekim kaydı, diploma/TTB no belge yükleme akışı)
 - `doctors`/`reviews` RLS placeholder politikalarının gerçek kurallarla değiştirilmesi
 - Kurum bağlama (SGK hizmet dökümü ile "aktif/önceden çalıştı" rozeti) → `doctor_workplaces` doldurulması
-
-## Sprint 4 (öneri)
-
 - Yorum/puanlama yazma akışı (`reviews`, `review_scores` repository'leri ve UI)
 - Katkı teşviki (ver-gör kilidi + ilk görev muafiyeti)
 
@@ -53,4 +62,4 @@
 - YHGM kontenjan verisinin otomatik çekilmesi
 - Atama türüne göre kişiselleştirilmiş bildirimler
 
-> Not: Sprint 3 ve sonrası için kapsam/sıralama bir öneri taslağıdır, bağlayıcı değildir.
+> Not: Sprint 4 ve sonrası için kapsam/sıralama bir öneri taslağıdır, bağlayıcı değildir.
