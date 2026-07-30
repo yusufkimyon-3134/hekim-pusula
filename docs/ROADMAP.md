@@ -42,20 +42,28 @@
 
 *(İkinci geçiş — "Smart Hospital Search": sonuçlar artık `pg_trgm` `similarity()` ile alaka düzeyine göre sıralanıyor (önceden yalnızca alfabetikti); yeni `branch_synonyms` tablosu günlük dildeki terimleri ("dahiliye" → "İç Hastalıkları") çözüyor — yukarıdaki bilinen sınır artık kısmen kapandı. Hastane araması da tutarlılık için RPC'ye taşındı. Detaylar `docs/SPRINT3.md`'de — "Sprint 3 - Smart Hospital Search" commit'i. İleride veri büyüdükçe tam bir `tsvector` full-text-search'e geçiş düşünülebilir.)*
 
-## Sprint 4 (öneri)
+## Sprint 4 — Premium Clinic Detail Experience ✅ (bu teslimat)
+
+- Klinik detay sayfası tamamen yeniden tasarlandı: hero (klinik adı > hastane adı > konum hiyerarşisi), tanıtım metni, "henüz deneyim yok" boş durumu (devre dışı "Deneyimini Paylaş" CTA'sı), 6 "yakında" bilgi kartı (nöbet, hasta yoğunluğu, servis yükü, ek ödeme, yönetim, ortam), imza öğesi olarak zarif boş zaman çizelgesi
+- Yeni `Badge` varyantı (`soft`) — "Yakında" etiketleri için
+- Tekrarlanan bölüm başlığı stili ortak `SectionLabel` bileşenine çıkarıldı (arama, hastane, klinik sayfalarında kullanılıyor)
+- Yeni özellik/veri modeli değişikliği yok — bu sprint saf sunum/tasarım katmanı
+- Detaylar (tasarım/UX gerekçeleri): `docs/SPRINT4.md`
+
+## Sprint 5 (öneri)
 
 - Kimlik doğrulama (Supabase Auth, hekim kaydı, diploma/TTB no belge yükleme akışı)
 - `doctors`/`reviews` RLS placeholder politikalarının gerçek kurallarla değiştirilmesi
 - Kurum bağlama (SGK hizmet dökümü ile "aktif/önceden çalıştı" rozeti) → `doctor_workplaces` doldurulması
-- Yorum/puanlama yazma akışı (`reviews`, `review_scores` repository'leri ve UI)
+- Yorum/puanlama yazma akışı (`reviews`, `review_scores` repository'leri ve UI) — Sprint 4'te tasarlanan boş durumların gerçek veriyle doldurulması
 - Katkı teşviki (ver-gör kilidi + ilk görev muafiyeti)
 
-## Sprint 5 (öneri)
+## Sprint 6 (öneri)
 
 - Aktif hekimle anonim iletişim talebi ve sohbet
 - Bildirimler
 
-## Sprint 6 (öneri)
+## Sprint 7 (öneri)
 
 - Moderatör paneli (`reports` kuyruğu)
 
@@ -64,4 +72,4 @@
 - YHGM kontenjan verisinin otomatik çekilmesi
 - Atama türüne göre kişiselleştirilmiş bildirimler
 
-> Not: Sprint 4 ve sonrası için kapsam/sıralama bir öneri taslağıdır, bağlayıcı değildir.
+> Not: Sprint 5 ve sonrası için kapsam/sıralama bir öneri taslağıdır, bağlayıcı değildir.

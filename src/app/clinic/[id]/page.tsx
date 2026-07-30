@@ -1,13 +1,16 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layout/container";
-import { DetailPageHeader } from "@/components/layout/detail-page-header";
-import { Card, CardContent } from "@/components/ui/card";
+import { SectionLabel } from "@/components/section-label";
+import { ClinicHero } from "@/features/clinic/components/clinic-hero";
+import { ClinicIntro } from "@/features/clinic/components/clinic-intro";
+import { ShareExperienceEmptyState } from "@/features/clinic/components/share-experience-empty-state";
+import { UpcomingInfoGrid } from "@/features/clinic/components/upcoming-info-grid";
+import { ExperienceTimeline } from "@/features/clinic/components/experience-timeline";
 import { createClient } from "@/lib/supabase/server";
 import { ClinicRepository } from "@/lib/repositories/clinic-repository";
 
-// Şimdilik klinik+hastane bilgisi nadiren değişiyor — 1 saatlik ISR.
-// Sprint 4'te bu sayfaya yorumlar eklenince (sık değişen veri), bu süre
+// Klinik+hastane bilgisi nadiren değişiyor — 1 saatlik ISR.
+// Sprint 5'te bu sayfaya yorumlar eklenince (sık değişen veri), bu süre
 // kısaltılmalı veya on-demand revalidation'a geçilmeli.
 export const revalidate = 3600;
 
@@ -27,34 +30,26 @@ export default async function ClinicDetailPage({
   }
 
   return (
-    <Container className="py-10">
-      <DetailPageHeader
-        title={clinic.branch}
-        subtitle={
-          <>
-            <Link
-              href={`/hospital/${clinic.hospital.id}`}
-              className="underline-offset-2 hover:underline"
-            >
-              {clinic.hospital.name}
-            </Link>
-            {" — "}
-            {clinic.hospital.district}, {clinic.hospital.city}
-          </>
-        }
-      />
+    <Container className="py-12 sm:py-16">
+      <div className="mx-auto max-w-2xl space-y-14">
+        <ClinicHero branch={clinic.branch} hospital={clinic.hospital} />
 
-      <div className="mt-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Deneyim paylaşımları
-        </h2>
-        <Card className="mt-3">
-          <CardContent>
-            <p className="py-6 text-center text-sm text-muted-foreground">
-              Henüz değerlendirme yok.
-            </p>
-          </CardContent>
-        </Card>
+        <ClinicIntro />
+
+        <section className="space-y-4">
+          <SectionLabel>Deneyimler</SectionLabel>
+          <ShareExperienceEmptyState />
+        </section>
+
+        <section className="space-y-4">
+          <SectionLabel>Yakında gelecek bilgiler</SectionLabel>
+          <UpcomingInfoGrid />
+        </section>
+
+        <section className="space-y-6">
+          <SectionLabel>Zaman çizelgesi</SectionLabel>
+          <ExperienceTimeline />
+        </section>
       </div>
     </Container>
   );

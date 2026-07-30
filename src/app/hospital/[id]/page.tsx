@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layout/container";
 import { DetailPageHeader } from "@/components/layout/detail-page-header";
+import { SectionLabel } from "@/components/section-label";
 import { ClinicCard } from "@/features/clinic/components/clinic-card";
 import { createClient } from "@/lib/supabase/server";
 import { HospitalRepository } from "@/lib/repositories/hospital-repository";
@@ -37,9 +38,7 @@ export default async function HospitalDetailPage({
       />
 
       <div className="mt-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Klinikler ({clinics.length})
-        </h2>
+        <SectionLabel>Klinikler ({clinics.length})</SectionLabel>
 
         {clinics.length === 0 ? (
           <p className="mt-4 text-sm text-muted-foreground">

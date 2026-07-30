@@ -1,4 +1,5 @@
 import { Container } from "@/components/layout/container";
+import { SectionLabel } from "@/components/section-label";
 import { createClient } from "@/lib/supabase/server";
 import { HospitalRepository } from "@/lib/repositories/hospital-repository";
 import { ClinicRepository } from "@/lib/repositories/clinic-repository";
@@ -63,9 +64,7 @@ export default async function SearchPage({
 
       {hospitals.length > 0 && (
         <div className="mt-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Hastaneler ({hospitals.length})
-          </h2>
+          <SectionLabel>Hastaneler ({hospitals.length})</SectionLabel>
           <div className="mt-3 space-y-3">
             {hospitals.map((hospital) => (
               <HospitalCard key={hospital.id} hospital={hospital} />
@@ -76,9 +75,7 @@ export default async function SearchPage({
 
       {clinics.length > 0 && (
         <div className="mt-8">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Klinikler ({clinics.length})
-          </h2>
+          <SectionLabel>Klinikler ({clinics.length})</SectionLabel>
           <div className="mt-3 space-y-3">
             {clinics.map((clinic) => (
               <ClinicCard
