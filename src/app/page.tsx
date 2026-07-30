@@ -3,18 +3,35 @@ import { Container } from "@/components/layout/container";
 import { LogoMark } from "@/components/logo-mark";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  DashboardSection,
+  DashboardRow,
+  DashboardEmpty,
+} from "@/features/dashboard/components/dashboard-section";
 import { createClient } from "@/lib/supabase/server";
 import { HospitalRepository } from "@/lib/repositories/hospital-repository";
+import { DashboardRepository } from "@/lib/repositories/dashboard-repository";
+import { formatScore } from "@/lib/format-score";
 
 // Öne çıkan şehirler verisi sık değişmez (yalnızca yeni hastane
 // eklendiğinde) — her istekte yeniden sorgulamak yerine 1 saatte bir
 // yenilenen bir önbellek (ISR) kullanmak gereksiz veritabanı yükünü azaltır.
+// Not: Sprint 8'deki "bu ay" verileri de günlük bazda değişse yeterli
+// olduğu için aynı revalidate süresi korunuyor.
 export const revalidate = 3600;
 
 export default async function HomePage() {
   const supabase = await createClient();
   const hospitalRepository = new HospitalRepository(supabase);
-  const featuredCities = await hospitalRepository.listFeaturedCities(6);
+  const dashboardRepository = new DashboardRepository(supabase);
+
+  const [featuredCities, topClinics, mostImproved, trending, mostDiscussed] = await Promise.all([
+    hospitalRepository.listFeaturedCities(6),
+    dashboardRepository.topClinicsThisMonth(5),
+    dashboardRepository.mostImprovedClinics(5),
+    dashboardRepository.trendingSpecialties(5),
+    dashboardRepository.mostDiscussedHospitals(5),
+  ]);
 
   return (
     <>
@@ -46,6 +63,13 @@ export default async function HomePage() {
               Ara
             </Button>
           </form>
+
+          <Link
+            href="/career-match"
+            className="text-sm text-primary-foreground/80 underline-offset-2 hover:underline"
+          >
+            Ya da kariyer eşleştirme ile sana uygun klinikleri bul →
+          </Link>
         </Container>
       </section>
 
@@ -78,6 +102,80 @@ export default async function HomePage() {
             ))}
           </div>
         )}
+      </Container>
+
+      {/* AI Dashboard — tamamı gerçek, son 30 günlük SQL agregasyonları (LLM kullanılmaz) */}
+      <Container className="pb-16">
+        <h2 className="text-lg font-semibold tracking-tight">Bu ay öne çıkanlar</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Son 30 günün gerçek değerlendirme verilerinden — yapay zeka
+          tahmini değil, hesaplanmış istatistik.
+        </p>
+
+        <div className="mt-6 grid gap-8 sm:grid-cols-2">
+          <DashboardSection title="Bu ayın en iyileri">
+            {topClinics.length === 0 ? (
+              <DashboardEmpty />
+            ) : (
+              topClinics.map((c) => (
+                <DashboardRow
+                  key={c.clinicId}
+                  href={`/clinic/${c.clinicId}`}
+                  primary={c.hospitalName}
+                  secondary={`${c.branch} · ${c.hospitalCity}`}
+                  value={formatScore(c.avgOverallScore)}
+                />
+              ))
+            )}
+          </DashboardSection>
+
+          <DashboardSection title="En çok gelişenler">
+            {mostImproved.length === 0 ? (
+              <DashboardEmpty />
+            ) : (
+              mostImproved.map((c) => (
+                <DashboardRow
+                  key={c.clinicId}
+                  href={`/clinic/${c.clinicId}`}
+                  primary={c.hospitalName}
+                  secondary={`${c.branch} · ${c.hospitalCity}`}
+                  value={`+${c.improvement.toFixed(1)}`}
+                />
+              ))
+            )}
+          </DashboardSection>
+
+          <DashboardSection title="Trend branşlar">
+            {trending.length === 0 ? (
+              <DashboardEmpty />
+            ) : (
+              trending.map((t) => (
+                <DashboardRow
+                  key={t.branch}
+                  href={`/rankings/${encodeURIComponent(t.branch)}`}
+                  primary={t.branch}
+                  value={`${t.recentReviewCount} yorum`}
+                />
+              ))
+            )}
+          </DashboardSection>
+
+          <DashboardSection title="En çok konuşulan hastaneler">
+            {mostDiscussed.length === 0 ? (
+              <DashboardEmpty />
+            ) : (
+              mostDiscussed.map((h) => (
+                <DashboardRow
+                  key={h.hospitalId}
+                  href={`/hospital/${h.hospitalId}`}
+                  primary={h.hospitalName}
+                  secondary={h.hospitalCity}
+                  value={`${h.recentReviewCount} yorum`}
+                />
+              ))
+            )}
+          </DashboardSection>
+        </div>
       </Container>
     </>
   );

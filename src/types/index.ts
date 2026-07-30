@@ -1,6 +1,13 @@
 import type { DoctorRole, HospitalType } from "./database";
 
-export type { HospitalType, DoctorRole, ReportStatus, ReportReason, ReviewStatus } from "./database";
+export type {
+  HospitalType,
+  DoctorRole,
+  ReportStatus,
+  ReportReason,
+  ReviewStatus,
+  ReviewTopic,
+} from "./database";
 
 /**
  * Uygulama katmanının kullandığı domain tipleri (camelCase).
@@ -168,3 +175,37 @@ export interface ClinicRanking {
 }
 
 export type RankingSortBy = "overall" | "education" | "academic" | "workload" | "night_shifts";
+
+/** Sprint 8 — AI Dashboard (tamamen deterministik SQL agregasyonları, LLM kullanılmaz). */
+export interface TopClinicThisMonth {
+  clinicId: string;
+  branch: string;
+  hospitalId: string;
+  hospitalName: string;
+  hospitalCity: string;
+  avgOverallScore: number;
+  reviewCount: number;
+}
+
+export interface MostImprovedClinic {
+  clinicId: string;
+  branch: string;
+  hospitalId: string;
+  hospitalName: string;
+  hospitalCity: string;
+  recentAvg: number;
+  previousAvg: number;
+  improvement: number;
+}
+
+export interface TrendingSpecialty {
+  branch: string;
+  recentReviewCount: number;
+}
+
+export interface MostDiscussedHospital {
+  hospitalId: string;
+  hospitalName: string;
+  hospitalCity: string;
+  recentReviewCount: number;
+}

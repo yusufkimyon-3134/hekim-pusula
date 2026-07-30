@@ -36,6 +36,15 @@ export type ReportReason =
 
 export type ReviewStatus = "pending" | "approved" | "rejected";
 
+export type ReviewTopic =
+  | "education"
+  | "workload"
+  | "faculty"
+  | "research"
+  | "night_shifts"
+  | "financial_satisfaction"
+  | "social_environment";
+
 export interface Database {
   public: {
     Tables: {
@@ -297,6 +306,27 @@ export interface Database {
           }
         ];
       };
+      review_topics: {
+        Row: {
+          review_id: string;
+          topic: ReviewTopic;
+          created_at: string;
+        };
+        Insert: {
+          review_id: string;
+          topic: ReviewTopic;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["review_topics"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "review_topics_review_id_fkey";
+            columns: ["review_id"];
+            referencedRelation: "reviews";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: {
       hospital_city_counts: {
@@ -344,6 +374,44 @@ export interface Database {
       };
     };
     Functions: {
+      top_clinics_this_month: {
+        Args: { p_limit?: number };
+        Returns: {
+          clinic_id: string;
+          branch: string;
+          hospital_id: string;
+          hospital_name: string;
+          hospital_city: string;
+          avg_overall_score: number;
+          review_count: number;
+        }[];
+      };
+      most_improved_clinics: {
+        Args: { p_limit?: number };
+        Returns: {
+          clinic_id: string;
+          branch: string;
+          hospital_id: string;
+          hospital_name: string;
+          hospital_city: string;
+          recent_avg: number;
+          previous_avg: number;
+          improvement: number;
+        }[];
+      };
+      trending_specialties: {
+        Args: { p_limit?: number };
+        Returns: { branch: string; recent_review_count: number }[];
+      };
+      most_discussed_hospitals: {
+        Args: { p_limit?: number };
+        Returns: {
+          hospital_id: string;
+          hospital_name: string;
+          hospital_city: string;
+          recent_review_count: number;
+        }[];
+      };
       get_my_reputation: {
         Args: Record<PropertyKey, never>;
         Returns: {

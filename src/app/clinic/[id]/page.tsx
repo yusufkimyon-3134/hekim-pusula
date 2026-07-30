@@ -12,9 +12,14 @@ import { ClinicStatsSummary } from "@/features/clinic/components/clinic-stats-su
 import { RatingDistribution } from "@/features/clinic/components/rating-distribution";
 import { ProsAndCons } from "@/features/clinic/components/pros-and-cons";
 import { ReviewHighlights } from "@/features/clinic/components/review-highlights";
+import { AiClinicSummaryCard } from "@/features/clinic/components/ai-clinic-summary-card";
+import { InsightCards } from "@/features/clinic/components/insight-cards";
 import { createClient } from "@/lib/supabase/server";
 import { ClinicRepository } from "@/lib/repositories/clinic-repository";
 import { ReviewRepository } from "@/lib/repositories/review-repository";
+import { generateClinicSummary } from "@/lib/ai/services/clinic-summary-service";
+import { generateClinicInsights } from "@/lib/ai/services/insights-service";
+import { AiNotConfiguredError, InsufficientDataError, type ClinicSummaryResult } from "@/lib/ai/types";
 
 export default async function ClinicDetailPage({
   params,
@@ -39,10 +44,12 @@ export default async function ClinicDetailPage({
     notFound();
   }
 
-  const [reviews, stats, ownReviewId] = await Promise.all([
+  const [reviews, stats, ownReviewId, topicCounts, globalAvgManagement] = await Promise.all([
     reviewRepository.findByClinicId(id),
     clinicRepository.getStats(id),
     userData.user ? reviewRepository.findOwnReviewIdForClinic(id) : Promise.resolve(null),
+    reviewRepository.getTopicCounts(id),
+    clinicRepository.getGlobalAverageManagementScore(),
   ]);
 
   const reviewHref = !userData.user
@@ -52,6 +59,31 @@ export default async function ClinicDetailPage({
       : `/clinic/${id}/review`;
 
   const hasReviews = reviews.length > 0;
+
+  // AI özeti: yalnızca yeterli veri varsa üretilir (bkz. AI Safety —
+  // "yetersiz veri açıkça belirtilmeli"). Hata durumunda sayfanın
+  // tamamı çökmesin diye burada yakalanıyor.
+  let aiSummary: ClinicSummaryResult | null = null;
+  let aiUnavailableReason: string | undefined;
+  if (hasReviews) {
+    try {
+      aiSummary = await generateClinicSummary(reviews);
+    } catch (e) {
+      if (e instanceof InsufficientDataError || e instanceof AiNotConfiguredError) {
+        aiUnavailableReason = e.message;
+      } else {
+        aiUnavailableReason = "AI özeti şu an oluşturulamadı.";
+      }
+    }
+  }
+
+  const insights = hasReviews
+    ? generateClinicInsights({
+        reviews,
+        topicCounts,
+        globalAvgManagementScore: globalAvgManagement,
+      })
+    : [];
 
   return (
     <Container className="py-12 sm:py-16">
@@ -68,6 +100,12 @@ export default async function ClinicDetailPage({
           </p>
         )}
 
+        {hasReviews && (
+          <section>
+            <AiClinicSummaryCard result={aiSummary} unavailableReason={aiUnavailableReason} />
+          </section>
+        )}
+
         <section className="space-y-4">
           <SectionLabel>İstatistikler</SectionLabel>
           {hasReviews && stats ? (
@@ -76,6 +114,13 @@ export default async function ClinicDetailPage({
             <UpcomingInfoGrid />
           )}
         </section>
+
+        {insights.length > 0 && (
+          <section className="space-y-4">
+            <SectionLabel>İçgörüler</SectionLabel>
+            <InsightCards insights={insights} />
+          </section>
+        )}
 
         {hasReviews && stats && (
           <>

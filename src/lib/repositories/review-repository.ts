@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
-import type { ReviewInput, ReviewWithScores } from "@/types";
+import type { ReviewInput, ReviewTopic, ReviewWithScores } from "@/types";
+import { classifyReviewTopics } from "@/lib/ai/adapters/keyword-topic-classifier";
 
 type ReviewRow = Database["public"]["Tables"]["reviews"]["Row"];
 type ReviewScoreRow = Database["public"]["Tables"]["review_scores"]["Row"];
@@ -149,6 +150,7 @@ export class ReviewRepository {
     if (error) {
       throw new Error(error.message);
     }
+    await this.reclassifyTopics(data, input.comment);
     return data;
   }
 
@@ -172,9 +174,58 @@ export class ReviewRepository {
     if (error) {
       throw new Error(error.message);
     }
+    await this.reclassifyTopics(reviewId, input.comment);
   }
 
-  /** Kendi review'unu siler (RLS: yalnızca sahibi). review_scores cascade ile silinir. */
+  /**
+   * Yorum metnini anahtar kelime tabanlı sınıflandırıcıdan geçirir
+   * (bkz. `src/lib/ai/adapters/keyword-topic-classifier.ts` — LLM
+   * KULLANMAZ, deterministiktir) ve `review_topics`'i günceller. Önce
+   * eski etiketleri temizler (düzenlemede yorum değişmiş olabilir).
+   * Bu adımın başarısız olması review'ın kendisini geçersiz kılmamalı
+   * — bu yüzden hata sessizce yutuluyor (etiketleme "nice to have",
+   * review'ın var olması kritik).
+   */
+  private async reclassifyTopics(reviewId: string, comment: string | undefined): Promise<void> {
+    try {
+      await this.client.from("review_topics").delete().eq("review_id", reviewId);
+      const topics = classifyReviewTopics(comment);
+      if (topics.length === 0) return;
+      await this.client
+        .from("review_topics")
+        .insert(topics.map((topic) => ({ review_id: reviewId, topic })));
+    } catch {
+      // Sessizce yut — bkz. yukarıdaki açıklama.
+    }
+  }
+
+  /** Bir klinikteki onaylı yorumlarda hangi konunun kaç kez geçtiği (Sprint 8 içgörüleri için). */
+  async getTopicCounts(clinicId: string): Promise<Partial<Record<ReviewTopic, number>>> {
+    const { data: reviewRows, error: reviewsError } = await this.client
+      .from("reviews")
+      .select("id")
+      .eq("clinic_id", clinicId);
+
+    if (reviewsError || !reviewRows || reviewRows.length === 0) return {};
+
+    const { data, error } = await this.client
+      .from("review_topics")
+      .select("topic")
+      .in(
+        "review_id",
+        reviewRows.map((r) => r.id)
+      );
+
+    if (error || !data) return {};
+
+    const counts: Partial<Record<ReviewTopic, number>> = {};
+    for (const row of data) {
+      counts[row.topic] = (counts[row.topic] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  /** Bir review'ı siler (RLS: yalnızca sahibi). review_scores cascade ile silinir. */
   async delete(reviewId: string): Promise<void> {
     const { error } = await this.client.from("reviews").delete().eq("id", reviewId);
     if (error) {

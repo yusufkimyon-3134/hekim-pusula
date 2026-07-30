@@ -84,17 +84,28 @@
 - Gerçek Postgres'te bulunan 2 hata düzeltildi: trigger'da eksik `SECURITY DEFINER`, `anon`'da eksik `doctor_workplaces` grant'i
 - Detaylar: `docs/SPRINT7.md`
 
-## Sprint 8 (öneri)
+## Sprint 8 — AI Career Advisor ✅ (bu teslimat)
+
+- `src/lib/ai/` servis katmanı (adapters/prompts/services) — sağlayıcı değiştirilebilir mimari
+- AI Klinik Özeti + AI Karşılaştırma Özeti — **gerçekten LLM kullanan tek iki özellik**, asgari veri eşiği + "asla uydurma" kısıtlı prompt + yapılandırılmamışsa zarif geri düşüş
+- Kariyer eşleştirme (`/career-match`) — uyum puanı **deterministik formülle** hesaplanıyor, LLM'e bilinçli olarak sorulmadı (bir LLM'in puan "tahmin etmesi" uydurma olurdu)
+- İçgörü kartları — zaman içi eğilim, sık bahsedilen konu, ortalamayla karşılaştırma: hepsi deterministik hesaplama
+- Konu tespiti (`review_topics`) — anahtar kelime tabanlı, sıfır halüsinasyon riski, review gönderiminde otomatik çalışır
+- AI Dashboard (ana sayfa): bu ayın en iyileri / en çok gelişenler / trend branşlar / en çok konuşulan hastaneler — 4 yeni deterministik SQL fonksiyonu, gerçek zaman damgalı test verisiyle doğrulandı
+- Anthropic API'ye gerçek bağlantı testi yapıldı (401 ile doğrulandı — istek şekli doğru, yalnızca anahtar eksik)
+- Detaylar: `docs/SPRINT8.md`
+
+## Sprint 9 (öneri)
 
 - Kurum bağlama akışının olgunlaştırılması (şu an review gönderiminde otomatik/doğrulanmamış workplace açılıyor) — SGK hizmet dökümü ile gerçek doğrulama, `is_verified_workplace` alanının gerçekten kullanılması
 - Doğrulama belgesi yükleme akışı (diploma/TTB no) — `doctors.is_verified`'ı gerçekten `true` yapacak süreç
 - Katkı teşviki (ver-gör kilidi + ilk görev muafiyeti)
 
-## Sprint 9 (öneri)
-
-- Moderatör paneli (`reports` kuyruğu + Sprint 7'de biriken `pending` review'ları inceleme) — artık gerçek bir kuyruk var, bu sprint'in önceliği arttı
-
 ## Sprint 10 (öneri)
+
+- Moderatör paneli (`reports` kuyruğu + Sprint 7'de biriken `pending` review'ları inceleme)
+
+## Sprint 11 (öneri)
 
 - Aktif hekimle anonim iletişim talebi ve sohbet
 - Bildirimler
@@ -104,6 +115,8 @@
 - YHGM kontenjan verisinin otomatik çekilmesi
 - Atama türüne göre kişiselleştirilmiş bildirimler
 - ISR/statik önbellekleme stratejisinin auth sonrası yeniden gözden geçirilmesi
+- Gerçek bir `ANTHROPIC_API_KEY` ile uçtan uca AI özeti testi (deploy öncesi ekip tarafından)
+- Konu sınıflandırmasının ileride bir LLM tabanlı sınıflandırıcıya geçirilmesi (mimari zaten buna izin veriyor)
 - Gerçek "workload score"/"education/academic" boyutları büyük veri hacminde full-text-search + tsvector'a taşınması (arama tarafı için)
 
-> Not: Sprint 8 ve sonrası için kapsam/sıralama bir öneri taslağıdır, bağlayıcı değildir.
+> Not: Sprint 9 ve sonrası için kapsam/sıralama bir öneri taslağıdır, bağlayıcı değildir.

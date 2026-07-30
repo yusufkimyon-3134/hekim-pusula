@@ -36,6 +36,24 @@ function toSearchResult(row: SearchClinicsRow): ClinicSearchResult {
   };
 }
 
+export function emptyClinicStats(): ClinicStats {
+  return {
+    reviewCount: 0,
+    avgOverallScore: null,
+    avgIncentiveScore: null,
+    avgColleagueScore: null,
+    avgManagementScore: null,
+    avgCityScore: null,
+    avgEducationScore: null,
+    avgAcademicScore: null,
+    avgMonthlyShifts: null,
+    avgDailyPatients: null,
+    avgServicePatients: null,
+    recommendPercentage: null,
+    totalHelpfulVotes: 0,
+  };
+}
+
 function toClinicStats(row: ClinicStatsRow): ClinicStats {
   return {
     reviewCount: row.review_count,
@@ -186,6 +204,21 @@ export class ClinicRepository {
       throw new Error(`Sıralama getirilemedi: ${error.message}`);
     }
     return (data ?? []).map(toClinicRanking);
+  }
+
+  /** Sistem genelinde ortalama yönetim puanı (Sprint 8 içgörüleri için — "ortalamanın üstünde/altında" karşılaştırması). */
+  async getGlobalAverageManagementScore(): Promise<number | null> {
+    const { data, error } = await this.client
+      .from("clinic_review_stats")
+      .select("avg_management_score")
+      .gt("review_count", 0);
+
+    if (error || !data || data.length === 0) return null;
+    const values = data
+      .map((row) => row.avg_management_score)
+      .filter((v): v is number => v !== null);
+    if (values.length === 0) return null;
+    return values.reduce((sum, v) => sum + v, 0) / values.length;
   }
 
   /** Sıralama sayfası için: sistemdeki tüm benzersiz branşlar, alfabetik. */

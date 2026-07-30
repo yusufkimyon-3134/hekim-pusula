@@ -163,6 +163,20 @@ Bir branştaki tüm klinikleri seçilen boyuta göre sıralar: `overall` (varsay
 
 Artık isteğe bağlı `filter_min_overall`, `filter_min_education`, `filter_min_academic`, `filter_max_monthly_shifts` parametreleri alıyor (`clinic_review_stats` ile join). Bir eşik verilip ilgili klinik hiç puanlanmamışsa (ortalama `null`), o eşik sağlanmamış sayılır ve klinik sonuçlardan çıkar — bu kasıtlı, test edildi.
 
+### `review_topics` (Sprint 8)
+
+| Alan | Tip | Not |
+|---|---|---|
+| review_id | uuid, FK → reviews | on delete cascade |
+| topic | enum `review_topic` | education / workload / faculty / research / night_shifts / financial_satisfaction / social_environment |
+| created_at | timestamptz | |
+
+`PRIMARY KEY (review_id, topic)`. **LLM ile değil**, anahtar kelime tabanlı deterministik bir sınıflandırıcıyla dolduruluyor (bkz. `src/lib/ai/adapters/keyword-topic-classifier.ts`) — review gönderildiğinde/düzenlendiğinde uygulama katmanı tarafından otomatik. RLS: `reviews_public_read` ile aynı mantık (onaylıysa herkese açık, değilse yalnızca yazarı).
+
+### AI Dashboard fonksiyonları (Sprint 8)
+
+`top_clinics_this_month`, `most_improved_clinics`, `trending_specialties`, `most_discussed_hospitals` — tamamı son 30 (ve `most_improved_clinics` için önceki 30) güne bakan, tamamen deterministik SQL agregasyonları. **LLM kullanılmaz.** Gerçek Postgres'te, farklı `created_at` değerleriyle eklenen test verisiyle doğrulandı (detaylar `docs/SPRINT8.md`).
+
 ### `favorites`
 
 | Alan | Tip | Not |

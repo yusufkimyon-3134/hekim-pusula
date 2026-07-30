@@ -1,8 +1,11 @@
 import { Container } from "@/components/layout/container";
 import Link from "next/link";
 import { CompareCard } from "@/features/clinic/components/compare-card";
+import { AiComparisonSummaryCard } from "@/features/clinic/components/ai-comparison-summary-card";
 import { createClient } from "@/lib/supabase/server";
-import { ClinicRepository } from "@/lib/repositories/clinic-repository";
+import { ClinicRepository, emptyClinicStats } from "@/lib/repositories/clinic-repository";
+import { generateComparisonSummary } from "@/lib/ai/services/comparison-service";
+import { AiNotConfiguredError, InsufficientDataError } from "@/lib/ai/types";
 
 function normalizeClinicIds(raw: string | string[] | undefined): string[] {
   if (!raw) return [];
@@ -56,6 +59,23 @@ export default async function ComparePage({
     clinicRepository.getStats(clinicB.id),
   ]);
 
+  let narrative: string | null = null;
+  let unavailableReason: string | undefined;
+  try {
+    const result = await generateComparisonSummary(
+      `${clinicA.branch} — ${clinicA.hospital.name}`,
+      statsA ?? emptyClinicStats(),
+      `${clinicB.branch} — ${clinicB.hospital.name}`,
+      statsB ?? emptyClinicStats()
+    );
+    narrative = result.narrative;
+  } catch (e) {
+    unavailableReason =
+      e instanceof InsufficientDataError || e instanceof AiNotConfiguredError
+        ? e.message
+        : "AI karşılaştırması şu an oluşturulamadı.";
+  }
+
   return (
     <Container className="py-10">
       <h1 className="text-2xl font-semibold tracking-tight">Klinik karşılaştırması</h1>
@@ -63,6 +83,10 @@ export default async function ComparePage({
         {clinicA.branch} — {clinicA.hospital.name} vs. {clinicB.branch} —{" "}
         {clinicB.hospital.name}
       </p>
+
+      <div className="mt-6">
+        <AiComparisonSummaryCard narrative={narrative} unavailableReason={unavailableReason} />
+      </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <CompareCard clinic={clinicA} stats={statsA} />
