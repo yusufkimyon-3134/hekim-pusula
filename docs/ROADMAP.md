@@ -50,20 +50,32 @@
 - Yeni özellik/veri modeli değişikliği yok — bu sprint saf sunum/tasarım katmanı
 - Detaylar (tasarım/UX gerekçeleri): `docs/SPRINT4.md`
 
-## Sprint 5 (öneri)
+## Sprint 5 — Community & Trust Foundation ✅ (bu teslimat)
 
-- Kimlik doğrulama (Supabase Auth, hekim kaydı, diploma/TTB no belge yükleme akışı)
-- `doctors`/`reviews` RLS placeholder politikalarının gerçek kurallarla değiştirilmesi
-- Kurum bağlama (SGK hizmet dökümü ile "aktif/önceden çalıştı" rozeti) → `doctor_workplaces` doldurulması
-- Yorum/puanlama yazma akışı (`reviews`, `review_scores` repository'leri ve UI) — Sprint 4'te tasarlanan boş durumların gerçek veriyle doldurulması
-- Katkı teşviki (ver-gör kilidi + ilk görev muafiyeti)
+- Supabase Auth: giriş/kayıt/çıkış (Server Actions), `middleware.ts` ile oturum yenileme
+- `/profile`: `doctors` tablosu genişletildi (`avatar_url`, `city`, `current_hospital`, `experience_year`, `bio`) — **ayrı bir `profiles` tablosu değil** (gerekçe: `docs/SPRINT5.md`)
+- `VerifiedBadge` bileşeni — var olan `doctors.is_verified` alanını gösteriyor (yeni sütun eklenmedi)
+- `/clinic/[id]/review`: atomik `submit_review` RPC'si ile değerlendirme gönderimi (workplace otomatik açılıyor, review+score tek transaction'da)
+- RLS: `doctors`/`doctor_workplaces`/`reviews`/`review_scores` artık placeholder değil, gerçek kurallarla çalışıyor (`reviews` herkese açık okunur, yazma yalnızca sahibine)
+- Klinik detay sayfasındaki zaman çizelgesi artık gerçek değerlendirmeleri gösteriyor
+- Gerçek Postgres'e karşı çok kullanıcılı RLS senaryoları + atomik RPC test edildi
+- **Önemli/dürüst not:** auth-farkında header artık tüm uygulamayı dinamik render'a zorluyor — Sprint 3'teki ISR (`revalidate`) fiilen devre dışı. Bu, SSR tabanlı auth'un doğal/kabul edilen bir sonucu, bir hata değil.
+- **Talimattan bilinçli sapmalar** (gerekçeli): `full_name` eklenmedi (anonimlik ilkesi), `verified_doctor` eklenmedi (`is_verified` zaten var), review formu talimattaki isimler yerine var olan şema sütunlarına bağlandı — tüm detaylar `docs/SPRINT5.md`
+- Detaylar: `docs/SPRINT5.md`
 
 ## Sprint 6 (öneri)
+
+- Kurum bağlama akışının olgunlaştırılması (şu an review gönderiminde otomatik/doğrulanmamış workplace açılıyor) — SGK hizmet dökümü ile gerçek doğrulama, `is_verified_workplace` alanının gerçekten kullanılması
+- Doğrulama belgesi yükleme akışı (diploma/TTB no) — `doctors.is_verified`'ı gerçekten `true` yapacak süreç
+- Katkı teşviki (ver-gör kilidi + ilk görev muafiyeti)
+- "Overall score" gibi türetilmiş/ek puanlama boyutları gerçekten isteniyorsa, bilinçli bir şema genişletmesi olarak ele alınmalı
+
+## Sprint 7 (öneri)
 
 - Aktif hekimle anonim iletişim talebi ve sohbet
 - Bildirimler
 
-## Sprint 7 (öneri)
+## Sprint 8 (öneri)
 
 - Moderatör paneli (`reports` kuyruğu)
 
@@ -71,5 +83,6 @@
 
 - YHGM kontenjan verisinin otomatik çekilmesi
 - Atama türüne göre kişiselleştirilmiş bildirimler
+- ISR/statik önbellekleme stratejisinin auth sonrası yeniden gözden geçirilmesi (örn. herkese açık sayfalarda auth kontrolünü client-side'a taşıyıp statik kalmalarını sağlamak — bu, "gereksiz client-side render'dan kaçın" ilkesiyle tartılmalı)
 
-> Not: Sprint 5 ve sonrası için kapsam/sıralama bir öneri taslağıdır, bağlayıcı değildir.
+> Not: Sprint 6 ve sonrası için kapsam/sıralama bir öneri taslağıdır, bağlayıcı değildir.

@@ -1,8 +1,14 @@
+import Link from "next/link";
 import { MessageSquarePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-export function ShareExperienceEmptyState() {
+export function ShareExperienceEmptyState({
+  reviewHref,
+}: {
+  /** Giriş yapılmışsa `/clinic/[id]/review`, yapılmamışsa `/login?redirectTo=...`. */
+  reviewHref: string;
+}) {
   return (
     <Card className="border-dashed bg-card/50">
       <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
@@ -17,8 +23,8 @@ export function ShareExperienceEmptyState() {
             Meslektaşlarına yardım eden ilk kişi ol.
           </p>
         </div>
-        <Button disabled title="Bu özellik yakında açılacak">
-          Deneyimini Paylaş
+        <Button asChild>
+          <Link href={reviewHref}>Deneyimini Paylaş</Link>
         </Button>
       </CardContent>
     </Card>

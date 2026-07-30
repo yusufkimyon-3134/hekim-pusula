@@ -48,14 +48,21 @@ Yalnızca kamu hastaneleri kapsamdadır — özel hastane türü enum'da yok, bu
 | nickname | text | Gerçek ad/soyad DEĞİL |
 | role | enum `doctor_role` | general_practitioner / specialist / subspecialist |
 | specialty | text | |
-| is_verified | boolean | |
+| is_verified | boolean | Sprint 5'te `VerifiedBadge` bileşeni bu alanı okuyor; belge yükleme akışı henüz yok |
+| avatar_url | text, null olabilir | Sprint 5 |
+| city | text, null olabilir | Sprint 5, opsiyonel profil alanı |
+| current_hospital | text, null olabilir | Sprint 5 — **kendi beyanına dayalı, doğrulanmamış**. `doctor_workplaces` ile karıştırılmamalı |
+| experience_year | integer, null olabilir | Sprint 5, 0-60 arası (CHECK) |
+| bio | text, null olabilir | Sprint 5 |
 | created_at, updated_at | timestamptz | |
 
-**Kritik tasarım kararı:** `id`, Supabase'in standart "profil tablosu" deseniyle `auth.users.id`'yi referans alır. Bu, kimlik doğrulama UI'ını *implemente etmez* (Sprint 3'te gelecek) — ama şemayı şimdiden doğru kurar, böylece auth eklendiğinde birincil anahtar tipini değiştirip veri taşımak gerekmez. `auth.users` şeması her Supabase projesinde zaten var olduğu için bu referans bugün de geçerlidir.
+**Kritik tasarım kararı:** `id`, Supabase'in standart "profil tablosu" deseniyle `auth.users.id`'yi referans alır. `auth.users` şeması her Supabase projesinde zaten var olduğu için bu referans Sprint 2'den beri geçerlidir; Sprint 5'te gerçek kimlik doğrulama (Supabase Auth) buna bağlandı.
 
 Gerçek ad/soyad/TC hiçbir sütunda tutulmaz — bu, ürünün "anonimlik esas" ilkesinin veritabanı seviyesindeki karşılığıdır.
 
-> **CTO incelemesi notu:** Bu tablo, tasarım aşamasından itibaren zaten yalnızca yukarıdaki 7 alanı içeriyordu — `full_name`, `national_id`, `diploma_number` gibi kişisel veri hiçbir zaman şemaya eklenmedi. Kimlik doğrulama (Sprint 3+) tasarlanırken, doğrulama belgesi (diploma/TTB no) *işlenip* kalıcı olarak *saklanmayacak* şekilde kurgulanmalı — örneğin geçici bir dosya deposunda tutulup onay sonrası silinmeli, bu tabloya asla bir "belge" veya "kimlik" sütunu eklenmemeli.
+> **CTO incelemesi notu (Sprint 2):** Bu tablo, tasarım aşamasından itibaren zaten yalnızca temel alanları içeriyordu — `full_name`, `national_id`, `diploma_number` gibi kişisel veri hiçbir zaman şemaya eklenmedi. Kimlik doğrulama belgesi (diploma/TTB no) *işlenip* kalıcı olarak *saklanmayacak* şekilde kurgulanmalı — bu tabloya asla bir "belge" veya "kimlik" sütunu eklenmemeli.
+>
+> **Sprint 5 notu:** Bu ilke Sprint 5'te de korundu — görev tanımı `full_name` ve ayrı bir `profiles` tablosu istiyordu, ikisi de bilinçli olarak uygulanmadı. Gerekçe: `docs/SPRINT5.md`.
 
 ### `doctor_workplaces`
 
@@ -159,15 +166,15 @@ Görev tanımının genel gereksinimi ("Add created_at and updated_at everywhere
 
 ## RLS (Row Level Security) durumu
 
-Her tabloda RLS **etkin**. İki farklı politika seti var:
+Her tabloda RLS **etkin**. Sprint 5'ten itibaren `favorites`/`reports` dışındaki tüm tablolarda placeholder'ların yerini gerçek kurallar aldı:
 
-- **`hospitals`, `clinics`** — herkes `SELECT` yapabilir (`using (true)`). Kamuya açık referans veridir, arama sayfası kimlik doğrulaması olmadan çalışmalı.
-- **`doctors`, `doctor_workplaces`, `reviews`, `review_scores`, `favorites`, `reports`** — kasıtlı olarak **tamamen kilitli** placeholder politika (`using (false)`). Kimlik doğrulama henüz yok (Sprint 3), gerçek erişim kuralları o zaman yazılacak.
+- **`hospitals`, `clinics`** — herkes `SELECT` yapabilir (`using (true)`). Kamuya açık referans veri.
+- **`doctors`, `doctor_workplaces`** — yalnızca kendi satırı (`auth.uid() = id` / `auth.uid() = doctor_id`). Herkese açık bir "hekim dizini" **yok** — anonimlik ilkesi gereği.
+- **`reviews`, `review_scores`** — **herkes okuyabilir** (`using (true)`, ürünün temel değeri), ama yalnızca kendi `doctor_workplaces` kaydına bağlı bir satır ekleyip düzenleyebilir (alt sorgu ile `auth.uid()` kontrolü).
+- **`favorites`, `reports`** — henüz implemente edilmedi, kasıtlı olarak **tamamen kilitli** placeholder politika (`using (false)`) korunuyor.
 
-**Gerçek bir non-superuser rolüyle test edildi**: `hospitals`/`clinics` görünür, diğer 6 tablo tamamen görünmez — beklenen davranış doğrulandı.
-
-> ⚠️ **Sprint 3 için not:** `reviews`/`review_scores` muhtemelen nihayetinde `hospitals`/`clinics` gibi herkese açık okunur olacak (ürünün temel değeri budur), ama *yazma* kimlik doğrulanmış ve doğrulanmış hekimlerle sınırlı kalacak. Bu placeholder'ı unutmayın.
+**Gerçek Postgres'te, `auth.uid()`'i taklit eden bir fonksiyon ve iki farklı kullanıcı simülasyonuyla test edildi** (Sprint 5): kullanıcılar birbirinin profilini göremiyor, biri diğerinin `doctor_workplaces`'i adına review ekleyemiyor, `anon` rolü review'ları okuyabiliyor ama `doctors`'ı okuyamıyor/yazamıyor. Detaylar: `docs/SPRINT5.md`.
 
 ## Repository katmanı ile ilişki
 
-Yalnızca `hospitals` ve `clinics` için repository yazıldı (`src/lib/repositories/`), çünkü bu sprintte yalnızca arama sayfası gerçek veriye bağlandı. Diğer tablolar için repository'ler, ilgili özellik implemente edildiğinde eklenecek.
+`HospitalRepository`, `ClinicRepository` (Sprint 2-3), `DoctorRepository`, `ReviewRepository` (Sprint 5). `favorites`/`reports` için repository henüz yok — ilgili özellik implemente edildiğinde eklenecek.

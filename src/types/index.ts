@@ -1,4 +1,4 @@
-import type { HospitalType } from "./database";
+import type { DoctorRole, HospitalType } from "./database";
 
 export type { HospitalType, DoctorRole, ReportStatus } from "./database";
 
@@ -48,4 +48,58 @@ export interface HospitalSearchParams {
   query?: string;
   city?: string;
   hospitalType?: HospitalType;
+}
+
+/** Kimliği doğrulanmış kullanıcının hekim profili (self-servis, yalnızca kendisi görebilir). */
+export interface Doctor {
+  id: string;
+  nickname: string;
+  role: DoctorRole;
+  specialty: string;
+  isVerified: boolean;
+  avatarUrl: string | null;
+  city: string | null;
+  currentHospital: string | null;
+  experienceYear: number | null;
+  bio: string | null;
+}
+
+/** Profil formundan gönderilen, henüz kaydedilmemiş veri. */
+export interface DoctorProfileInput {
+  nickname: string;
+  role: DoctorRole;
+  specialty: string;
+  city?: string;
+  currentHospital?: string;
+  experienceYear?: number;
+  bio?: string;
+}
+
+/** Bir kliniğe ait, herkese açık (anonim) deneyim paylaşımı — puanlarıyla birlikte. */
+export interface ReviewWithScores {
+  id: string;
+  monthlyShifts: number;
+  dailyPatients: number;
+  servicePatients: number;
+  wouldChooseAgain: boolean;
+  comment: string | null;
+  createdAt: string;
+  incentiveScore: number;
+  colleagueScore: number;
+  managementScore: number;
+  cityScore: number;
+}
+
+/** Değerlendirme formundan gönderilen veri. */
+export interface ReviewInput {
+  clinicId: string;
+  monthlyShifts: number;
+  dailyPatients: number;
+  servicePatients: number;
+  wouldChooseAgain: boolean;
+  comment?: string;
+  incentiveScore: number;
+  colleagueScore: number;
+  managementScore: number;
+  cityScore: number;
 }

@@ -87,6 +87,11 @@ export interface Database {
           role: DoctorRole;
           specialty: string;
           is_verified: boolean;
+          avatar_url: string | null;
+          city: string | null;
+          current_hospital: string | null;
+          experience_year: number | null;
+          bio: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -96,6 +101,11 @@ export interface Database {
           role: DoctorRole;
           specialty: string;
           is_verified?: boolean;
+          avatar_url?: string | null;
+          city?: string | null;
+          current_hospital?: string | null;
+          experience_year?: number | null;
+          bio?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -262,6 +272,21 @@ export interface Database {
       };
     };
     Functions: {
+      submit_review: {
+        Args: {
+          p_clinic_id: string;
+          p_monthly_shifts: number;
+          p_daily_patients: number;
+          p_service_patients: number;
+          p_would_choose_again: boolean;
+          p_comment: string | null;
+          p_incentive_score: number;
+          p_colleague_score: number;
+          p_management_score: number;
+          p_city_score: number;
+        };
+        Returns: string;
+      };
       search_hospitals: {
         Args: {
           search_query?: string | null;

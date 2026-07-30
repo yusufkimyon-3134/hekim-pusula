@@ -1,5 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/ui/native-select";
 import { HOSPITAL_TYPE_OPTIONS } from "@/lib/hospital-type";
 import type { CityCount, HospitalType } from "@/types";
 
@@ -37,11 +38,11 @@ export function SearchForm({
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row">
-        <select
+        <NativeSelect
           name="city"
           defaultValue={defaultCity ?? ""}
           aria-label="Şehir filtresi"
-          className="h-9 flex-1 rounded-md border border-input bg-transparent px-3 text-sm shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="flex-1"
         >
           <option value="">Tüm şehirler</option>
           {cities.map((c) => (
@@ -49,13 +50,13 @@ export function SearchForm({
               {c.city} ({c.hospitalCount})
             </option>
           ))}
-        </select>
+        </NativeSelect>
 
-        <select
+        <NativeSelect
           name="hospitalType"
           defaultValue={defaultHospitalType ?? ""}
           aria-label="Hastane türü filtresi"
-          className="h-9 flex-1 rounded-md border border-input bg-transparent px-3 text-sm shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="flex-1"
         >
           <option value="">Tüm hastane türleri</option>
           {HOSPITAL_TYPE_OPTIONS.map((opt) => (
@@ -63,7 +64,7 @@ export function SearchForm({
               {opt.label}
             </option>
           ))}
-        </select>
+        </NativeSelect>
 
         <Button type="submit" variant="outline" size="sm" className="sm:w-auto">
           Filtrele
