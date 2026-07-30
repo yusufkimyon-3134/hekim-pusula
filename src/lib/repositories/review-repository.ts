@@ -22,6 +22,8 @@ function toReviewWithScores(row: ReviewWithScoreRow): ReviewWithScores | null {
     colleagueScore: row.review_scores.colleague_score,
     managementScore: row.review_scores.management_score,
     cityScore: row.review_scores.city_score,
+    educationScore: row.review_scores.education_score,
+    academicScore: row.review_scores.academic_score,
   };
 }
 
@@ -66,6 +68,8 @@ export class ReviewRepository {
       p_colleague_score: input.colleagueScore,
       p_management_score: input.managementScore,
       p_city_score: input.cityScore,
+      p_education_score: input.educationScore,
+      p_academic_score: input.academicScore,
     });
 
     if (error) {

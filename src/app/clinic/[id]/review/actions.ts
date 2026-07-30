@@ -25,6 +25,8 @@ export async function submitReview(formData: FormData) {
     colleagueScore: formData.get("colleagueScore"),
     managementScore: formData.get("managementScore"),
     cityScore: formData.get("cityScore"),
+    educationScore: formData.get("educationScore"),
+    academicScore: formData.get("academicScore"),
   });
 
   if (!parsed.success) {

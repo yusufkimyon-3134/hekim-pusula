@@ -117,10 +117,12 @@ export default async function ReviewPage({
               </div>
 
               <div className="space-y-4 border-t border-border pt-4">
-                <ScoreField name="incentiveScore" label="Döner sermaye / ek ödeme" />
-                <ScoreField name="colleagueScore" label="Meslektaş ilişkileri" />
+                <ScoreField name="incentiveScore" label="Döner sermaye / ek ödeme (finansal memnuniyet)" />
+                <ScoreField name="colleagueScore" label="Meslektaş ilişkileri / sosyal ortam" />
                 <ScoreField name="managementScore" label="Yönetim desteği" />
                 <ScoreField name="cityScore" label="Şehir / yaşam kalitesi" />
+                <ScoreField name="educationScore" label="Eğitim kalitesi" />
+                <ScoreField name="academicScore" label="Akademik fırsatlar" />
               </div>
 
               <div className="space-y-1.5">

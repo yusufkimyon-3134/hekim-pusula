@@ -122,13 +122,29 @@ Gerçek ad/soyad/TC hiçbir sütunda tutulmaz — bu, ürünün "anonimlik esas"
 | Alan | Tip | Not |
 |---|---|---|
 | review_id | uuid, **PK ve FK** → reviews | on delete cascade |
-| incentive_score | smallint | 1–5 |
-| colleague_score | smallint | 1–5 |
-| management_score | smallint | 1–5 |
-| city_score | smallint | 1–5 |
+| incentive_score | smallint | 1–5, "finansal memnuniyet" |
+| colleague_score | smallint | 1–5, "sosyal ortam" |
+| management_score | smallint | 1–5, "yönetim/faculty desteği" |
+| city_score | smallint | 1–5, şehir/yaşam kalitesi |
+| education_score | integer | 1–5, Sprint 6 — eğitim kalitesi |
+| academic_score | integer | 1–5, Sprint 6 — akademik fırsatlar |
 | created_at, updated_at | timestamptz | |
 
 1-1 ilişki olduğu için ayrı bir `id` sütunu yok — `review_id` hem birincil hem yabancı anahtar. Her skor `CHECK (... between 1 and 5)` ile sınırlandırıldı; aralık dışı değer eklemeyi test ettik, doğru şekilde reddedildi.
+
+> **Sprint 6 notu:** `education_score`/`academic_score` sonradan eklendi (var olan satırlar varsayılan `3` ile dolduruldu) — gerekçe `docs/SPRINT6.md`'de. "Overall score" ayrı bir sütun değil; `clinic_review_stats` view'ında altı puanın ortalaması olarak hesaplanır.
+
+### `clinic_review_stats` (view, Sprint 6)
+
+Her klinik için: `review_count`, altı puanın her biri için ortalama, `avg_overall_score` (altısının ortalaması), `avg_monthly_shifts`/`avg_daily_patients`/`avg_service_patients`, `recommend_percentage` (`would_choose_again` yüzdesi). `clinics` ile `reviews`/`review_scores` arasında **LEFT JOIN** — hiç yorumu olmayan klinikler de `review_count=0` ile satırda görünür (istatistik/karşılaştırma sayfalarının "henüz veri yok" durumunu doğal göstermesi için). `security_invoker=true`, herkese `SELECT` açık.
+
+### `rank_clinics_by_branch(branch, sort_by)` (fonksiyon, Sprint 6)
+
+Bir branştaki tüm klinikleri seçilen boyuta göre sıralar: `overall` (varsayılan), `education`, `academic`, `workload`, `night_shifts`. Skor boyutlarında yüksek=iyi (desc), `workload`/`night_shifts`'te düşük=iyi (asc) — yön otomatik seçilir. **Gerçek Postgres'te, 3 farklı klinikte farklı puan/nöbet profilleriyle test edildi**, her sıralama boyutu doğru yönde çalıştı.
+
+### `search_clinics` — Sprint 6 genişletmesi
+
+Artık isteğe bağlı `filter_min_overall`, `filter_min_education`, `filter_min_academic`, `filter_max_monthly_shifts` parametreleri alıyor (`clinic_review_stats` ile join). Bir eşik verilip ilgili klinik hiç puanlanmamışsa (ortalama `null`), o eşik sağlanmamış sayılır ve klinik sonuçlardan çıkar — bu kasıtlı, test edildi.
 
 ### `favorites`
 
@@ -177,4 +193,4 @@ Her tabloda RLS **etkin**. Sprint 5'ten itibaren `favorites`/`reports` dışınd
 
 ## Repository katmanı ile ilişki
 
-`HospitalRepository`, `ClinicRepository` (Sprint 2-3), `DoctorRepository`, `ReviewRepository` (Sprint 5). `favorites`/`reports` için repository henüz yok — ilgili özellik implemente edildiğinde eklenecek.
+`HospitalRepository`, `ClinicRepository` (Sprint 2-3, Sprint 6'da `getStats`/`rankByBranch`/`listBranches` ile genişledi), `DoctorRepository`, `ReviewRepository` (Sprint 5). `favorites`/`reports` için repository henüz yok — ilgili özellik implemente edildiğinde eklenecek.

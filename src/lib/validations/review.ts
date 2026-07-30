@@ -13,6 +13,8 @@ export const reviewSchema = z.object({
   colleagueScore: z.coerce.number().int().min(1).max(5),
   managementScore: z.coerce.number().int().min(1).max(5),
   cityScore: z.coerce.number().int().min(1).max(5),
+  educationScore: z.coerce.number().int().min(1).max(5),
+  academicScore: z.coerce.number().int().min(1).max(5),
 });
 
 export type ReviewFormValues = z.infer<typeof reviewSchema>;

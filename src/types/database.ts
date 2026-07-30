@@ -187,6 +187,8 @@ export interface Database {
           colleague_score: number;
           management_score: number;
           city_score: number;
+          education_score: number;
+          academic_score: number;
           created_at: string;
           updated_at: string;
         };
@@ -196,6 +198,8 @@ export interface Database {
           colleague_score: number;
           management_score: number;
           city_score: number;
+          education_score?: number;
+          academic_score?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -270,6 +274,24 @@ export interface Database {
         };
         Relationships: [];
       };
+      clinic_review_stats: {
+        Row: {
+          clinic_id: string;
+          review_count: number;
+          avg_incentive_score: number | null;
+          avg_colleague_score: number | null;
+          avg_management_score: number | null;
+          avg_city_score: number | null;
+          avg_education_score: number | null;
+          avg_academic_score: number | null;
+          avg_overall_score: number | null;
+          avg_monthly_shifts: number | null;
+          avg_daily_patients: number | null;
+          avg_service_patients: number | null;
+          recommend_percentage: number | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       submit_review: {
@@ -284,6 +306,8 @@ export interface Database {
           p_colleague_score: number;
           p_management_score: number;
           p_city_score: number;
+          p_education_score: number;
+          p_academic_score: number;
         };
         Returns: string;
       };
@@ -306,6 +330,10 @@ export interface Database {
           search_query?: string | null;
           filter_city?: string | null;
           filter_hospital_type?: HospitalType | null;
+          filter_min_overall?: number | null;
+          filter_min_education?: number | null;
+          filter_min_academic?: number | null;
+          filter_max_monthly_shifts?: number | null;
         };
         Returns: {
           clinic_id: string;
@@ -315,6 +343,28 @@ export interface Database {
           hospital_city: string;
           hospital_district: string;
           hospital_type: HospitalType;
+        }[];
+      };
+      rank_clinics_by_branch: {
+        Args: {
+          p_branch: string;
+          p_sort_by?: string;
+        };
+        Returns: {
+          clinic_id: string;
+          branch: string;
+          hospital_id: string;
+          hospital_name: string;
+          hospital_city: string;
+          hospital_district: string;
+          hospital_type: HospitalType;
+          review_count: number;
+          avg_overall_score: number | null;
+          avg_education_score: number | null;
+          avg_academic_score: number | null;
+          avg_monthly_shifts: number | null;
+          avg_workload: number | null;
+          recommend_percentage: number | null;
         }[];
       };
     };

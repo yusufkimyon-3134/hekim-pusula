@@ -63,19 +63,29 @@
 - **Talimattan bilinçli sapmalar** (gerekçeli): `full_name` eklenmedi (anonimlik ilkesi), `verified_doctor` eklenmedi (`is_verified` zaten var), review formu talimattaki isimler yerine var olan şema sütunlarına bağlandı — tüm detaylar `docs/SPRINT5.md`
 - Detaylar: `docs/SPRINT5.md`
 
-## Sprint 6 (öneri)
+## Sprint 6 — Clinic Intelligence & Comparison ✅ (bu teslimat)
+
+- `review_scores`'a `education_score`/`academic_score` eklendi (gerekçe: `docs/SPRINT6.md`)
+- `clinic_review_stats` view + `rank_clinics_by_branch` RPC — gerçek Postgres'te test edildi
+- `/compare` — iki klinik yan yana (checkbox + GET form, JS/client component yok)
+- `/rankings`, `/rankings/[branch]` — branşa göre dinamik sıralama (overall/education/academic/workload/night_shifts)
+- `/search` — gelişmiş filtreler (`<details>`, JS'siz): min. genel/eğitim/akademik puan, maks. aylık nöbet
+- Klinik detay sayfası: istatistik özeti, puan dağılımı, artı/eksi (kategori ortalamalarından, NLP değil), öne çıkan yorumlar
+- Yeni bağımlılık yok; build/lint/typecheck temiz
+- Detaylar: `docs/SPRINT6.md`
+
+## Sprint 7 (öneri)
 
 - Kurum bağlama akışının olgunlaştırılması (şu an review gönderiminde otomatik/doğrulanmamış workplace açılıyor) — SGK hizmet dökümü ile gerçek doğrulama, `is_verified_workplace` alanının gerçekten kullanılması
 - Doğrulama belgesi yükleme akışı (diploma/TTB no) — `doctors.is_verified`'ı gerçekten `true` yapacak süreç
 - Katkı teşviki (ver-gör kilidi + ilk görev muafiyeti)
-- "Overall score" gibi türetilmiş/ek puanlama boyutları gerçekten isteniyorsa, bilinçli bir şema genişletmesi olarak ele alınmalı
 
-## Sprint 7 (öneri)
+## Sprint 8 (öneri)
 
 - Aktif hekimle anonim iletişim talebi ve sohbet
 - Bildirimler
 
-## Sprint 8 (öneri)
+## Sprint 9 (öneri)
 
 - Moderatör paneli (`reports` kuyruğu)
 
@@ -83,6 +93,7 @@
 
 - YHGM kontenjan verisinin otomatik çekilmesi
 - Atama türüne göre kişiselleştirilmiş bildirimler
-- ISR/statik önbellekleme stratejisinin auth sonrası yeniden gözden geçirilmesi (örn. herkese açık sayfalarda auth kontrolünü client-side'a taşıyıp statik kalmalarını sağlamak — bu, "gereksiz client-side render'dan kaçın" ilkesiyle tartılmalı)
+- ISR/statik önbellekleme stratejisinin auth sonrası yeniden gözden geçirilmesi
+- Gerçek "workload score"/"education/academic" boyutları büyük veri hacminde full-text-search + tsvector'a taşınması (arama tarafı için)
 
-> Not: Sprint 6 ve sonrası için kapsam/sıralama bir öneri taslağıdır, bağlayıcı değildir.
+> Not: Sprint 7 ve sonrası için kapsam/sıralama bir öneri taslağıdır, bağlayıcı değildir.

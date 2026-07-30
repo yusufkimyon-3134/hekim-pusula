@@ -8,12 +8,34 @@ import { HospitalCard } from "@/features/hospital/components/hospital-card";
 import { ClinicCard } from "@/features/clinic/components/clinic-card";
 import { isHospitalType } from "@/lib/hospital-type";
 
+function parseNumberParam(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : undefined;
+}
+
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; city?: string; hospitalType?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    city?: string;
+    hospitalType?: string;
+    minOverall?: string;
+    minEducation?: string;
+    minAcademic?: string;
+    maxMonthlyShifts?: string;
+  }>;
 }) {
-  const { q, city, hospitalType: rawHospitalType } = await searchParams;
+  const {
+    q,
+    city,
+    hospitalType: rawHospitalType,
+    minOverall,
+    minEducation,
+    minAcademic,
+    maxMonthlyShifts,
+  } = await searchParams;
   const hospitalType =
     rawHospitalType && isHospitalType(rawHospitalType) ? rawHospitalType : undefined;
 
@@ -21,17 +43,33 @@ export default async function SearchPage({
   const hospitalRepository = new HospitalRepository(supabase);
   const clinicRepository = new ClinicRepository(supabase);
 
-  const searchArgs = { query: q, city, hospitalType };
+  const hasAdvancedFilters = Boolean(
+    minOverall || minEducation || minAcademic || maxMonthlyShifts
+  );
 
-  // İki sorgu birbirinden bağımsız olduğu için paralel çalıştırılıyor
-  // (performans: art arda değil, aynı anda).
+  const hospitalSearchArgs = { query: q, city, hospitalType };
+  // Gelişmiş (puan tabanlı) filtreler yalnızca klinik aramasında anlamlı —
+  // hastanelerin kendisinin bir "puanı" yok, puanlar kliniğe ait.
+  const clinicSearchArgs = {
+    ...hospitalSearchArgs,
+    minOverall: parseNumberParam(minOverall),
+    minEducation: parseNumberParam(minEducation),
+    minAcademic: parseNumberParam(minAcademic),
+    maxMonthlyShifts: parseNumberParam(maxMonthlyShifts),
+  };
+
+  // Gelişmiş filtre varsa hastane sonuçlarını göstermenin anlamı yok
+  // (o filtreler hastane düzeyinde uygulanamıyor) — yalnızca klinik
+  // sonuçlarına odaklanılır.
   const [cities, hospitals, clinics] = await Promise.all([
     hospitalRepository.listAllCities(),
-    hospitalRepository.search(searchArgs),
-    clinicRepository.search(searchArgs),
+    hasAdvancedFilters
+      ? Promise.resolve([])
+      : hospitalRepository.search(hospitalSearchArgs),
+    clinicRepository.search(clinicSearchArgs),
   ]);
 
-  const hasAnyFilter = Boolean(q || city || hospitalType);
+  const hasAnyFilter = Boolean(q || city || hospitalType || hasAdvancedFilters);
   const totalResults = hospitals.length + clinics.length;
 
   return (
@@ -46,6 +84,10 @@ export default async function SearchPage({
           defaultQuery={q}
           defaultCity={city}
           defaultHospitalType={hospitalType}
+          defaultMinOverall={minOverall}
+          defaultMinEducation={minEducation}
+          defaultMinAcademic={minAcademic}
+          defaultMaxMonthlyShifts={maxMonthlyShifts}
           cities={cities}
         />
       </div>
