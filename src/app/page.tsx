@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 import { HospitalRepository } from "@/lib/repositories/hospital-repository";
 import { DashboardRepository } from "@/lib/repositories/dashboard-repository";
 import { formatScore } from "@/lib/format-score";
+import { safeQuery } from "@/lib/safe-query";
 
 // Öne çıkan şehirler verisi sık değişmez (yalnızca yeni hastane
 // eklendiğinde) — her istekte yeniden sorgulamak yerine 1 saatte bir
@@ -21,17 +22,31 @@ import { formatScore } from "@/lib/format-score";
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  const supabase = await createClient();
-  const hospitalRepository = new HospitalRepository(supabase);
-  const dashboardRepository = new DashboardRepository(supabase);
+  let featuredCities: Awaited<ReturnType<HospitalRepository["listFeaturedCities"]>> = [];
+  let topClinics: Awaited<ReturnType<DashboardRepository["topClinicsThisMonth"]>> = [];
+  let mostImproved: Awaited<ReturnType<DashboardRepository["mostImprovedClinics"]>> = [];
+  let trending: Awaited<ReturnType<DashboardRepository["trendingSpecialties"]>> = [];
+  let mostDiscussed: Awaited<ReturnType<DashboardRepository["mostDiscussedHospitals"]>> = [];
 
-  const [featuredCities, topClinics, mostImproved, trending, mostDiscussed] = await Promise.all([
-    hospitalRepository.listFeaturedCities(6),
-    dashboardRepository.topClinicsThisMonth(5),
-    dashboardRepository.mostImprovedClinics(5),
-    dashboardRepository.trendingSpecialties(5),
-    dashboardRepository.mostDiscussedHospitals(5),
-  ]);
+  // Bug fix: `createClient()`'ın kendisi Supabase yapılandırılmamışsa
+  // fırlatıyor. Bunu (ve altındaki sorguları) tek bir try/catch'e almak,
+  // sayfanın hiç çökmeden var olan "henüz veri yok" boş durumlarını
+  // göstermesini sağlıyor.
+  try {
+    const supabase = await createClient();
+    const hospitalRepository = new HospitalRepository(supabase);
+    const dashboardRepository = new DashboardRepository(supabase);
+
+    [featuredCities, topClinics, mostImproved, trending, mostDiscussed] = await Promise.all([
+      safeQuery(() => hospitalRepository.listFeaturedCities(6), []),
+      safeQuery(() => dashboardRepository.topClinicsThisMonth(5), []),
+      safeQuery(() => dashboardRepository.mostImprovedClinics(5), []),
+      safeQuery(() => dashboardRepository.trendingSpecialties(5), []),
+      safeQuery(() => dashboardRepository.mostDiscussedHospitals(5), []),
+    ]);
+  } catch (error) {
+    console.error("[HomePage] Supabase istemcisi oluşturulamadı, boş durum gösteriliyor:", error);
+  }
 
   return (
     <>

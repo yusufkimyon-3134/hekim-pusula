@@ -9,6 +9,7 @@ import { ClinicRepository } from "@/lib/repositories/clinic-repository";
 import { HospitalRepository } from "@/lib/repositories/hospital-repository";
 import { isHospitalType } from "@/lib/hospital-type";
 import { matchCareerPreferences, type CareerGoal } from "@/lib/ai/services/career-match-service";
+import { safeQuery } from "@/lib/safe-query";
 
 function parseScore(value: string | undefined, fallback = 3): number {
   const n = Number(value);
@@ -34,9 +35,11 @@ export default async function CareerMatchPage({
   const clinicRepository = new ClinicRepository(supabase);
   const hospitalRepository = new HospitalRepository(supabase);
 
+  // Bug fix: Supabase erişilemezse sayfa çökmesin — form yine de
+  // render edilir (branş/şehir listeleri boş görünür).
   const [branches, cities] = await Promise.all([
-    clinicRepository.listBranches(),
-    hospitalRepository.listAllCities(),
+    safeQuery(() => clinicRepository.listBranches(), []),
+    safeQuery(() => hospitalRepository.listAllCities(), []),
   ]);
 
   const hasSubmitted = Boolean(params.specialty);
@@ -55,7 +58,7 @@ export default async function CareerMatchPage({
               ? params.hospitalType
               : undefined,
         },
-        await clinicRepository.rankByBranch(params.specialty!, "overall")
+        await safeQuery(() => clinicRepository.rankByBranch(params.specialty!, "overall"), [])
       )
     : [];
 

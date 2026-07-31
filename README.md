@@ -22,6 +22,12 @@ supabase db push             # migration'ları uygula, sonra seed.sql'i çalış
 npm run dev
 ```
 
+> **Not:** `.env.local` henüz oluşturulmamış olsa bile `npm run dev` çalışır ve
+> `/`, `/login`, `/register`, `/search` gibi sayfalar açılır — yalnızca gerçek
+> Supabase verisi gösteren bölümler boş/"veri yok" durumunda görünür. Gerçek
+> işlevsellik (arama sonuçları, giriş, yorum yazma vb.) için yukarıdaki
+> `.env.local` adımı gereklidir. Detaylar: `docs/BUGFIX_LOCAL_STARTUP.md`.
+
 ## Teknoloji
 
 Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui · Supabase · TanStack Query · React Hook Form · Zod

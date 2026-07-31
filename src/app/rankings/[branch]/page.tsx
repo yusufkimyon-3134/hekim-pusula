@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { RankingRow } from "@/features/ranking/components/ranking-row";
 import { createClient } from "@/lib/supabase/server";
 import { ClinicRepository } from "@/lib/repositories/clinic-repository";
+import { safeQuery } from "@/lib/safe-query";
 import type { RankingSortBy } from "@/types";
 
 const SORT_OPTIONS: { value: RankingSortBy; label: string }[] = [
@@ -35,7 +36,9 @@ export default async function BranchRankingPage({
 
   const supabase = await createClient();
   const clinicRepository = new ClinicRepository(supabase);
-  const rankings = await clinicRepository.rankByBranch(branch, sortBy);
+  // Bug fix: Supabase erişilemezse sayfa çökmesin — boş sonuç normal
+  // "bulunamadı" (404) akışına düşer.
+  const rankings = await safeQuery(() => clinicRepository.rankByBranch(branch, sortBy), []);
 
   if (rankings.length === 0) {
     notFound();
