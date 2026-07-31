@@ -66,7 +66,7 @@ export default async function HomePage() {
 
           <form
             action="/search"
-            className="flex w-full max-w-xl flex-col gap-2 sm:flex-row"
+            className="flex w-full max-w-xl flex-col gap-2 sm:flex-row sm:justify-center"
           >
             <Input
               name="q"
