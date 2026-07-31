@@ -94,3 +94,42 @@ olmadan beklenen davranışı.
 Bu tur **hiçbir yeni özellik eklemedi, hiçbir sayfa yeniden tasarlanmadı** —
 yalnızca var olan sayfaların Supabase yapılandırılmamışken çökmeden
 render edilmesini sağlayan, saf bir dayanıklılık/bugfix turuydu.
+
+---
+
+## İkinci geçiş — `eslint-config-next` sürüm uyuşmazlığı
+
+Bir sonraki teşhis turunda (aynı "neden başlamıyor" sorusuyla) ikinci,
+bağımsız bir gerçek hata daha bulundu:
+
+**Belirti:** `package.json`'da `"next": "^15.5.22"` ama
+`"eslint-config-next": "16.2.12"` — bir **major sürüm uyuşmazlığı**.
+`npm run lint` (`next lint`) şu hatayı veriyordu:
+
+```
+Cannot find module '.../eslint-config-next/core-web-vitals' imported from eslint.config.mjs
+```
+
+**Kök sebep:** `eslint-config-next`'in 16.x sürümü flat-config (dizi)
+formatında dışa aktarım yapıyor; ama Next.js sürümüyle (15.5.22) eşleşen
+gerçek `eslint-config-next@15.5.22`, hâlâ eski eslintrc (obje + `extends`)
+formatını kullanıyor. `eslint.config.mjs`, 16.x'in flat-config dizisini
+doğrudan spread eden bir sözdizimiyle yazılmıştı — sürüm düzeltilince bu
+sözdizimi artık kurulu paketle uyuşmuyordu.
+
+**Düzeltme:**
+1. `package.json`: `eslint-config-next` → `"15.5.22"` (kurulu `next` ile birebir eşleşen sürüm)
+2. `eslint.config.mjs`: Next.js 15.x projelerinin resmi/varsayılan
+   `create-next-app` şablonundaki desene geçirildi — `@eslint/eslintrc`'in
+   `FlatCompat` köprüsüyle `compat.extends("next/core-web-vitals", "next/typescript")`
+
+**Doğrulama (taze bir `git clone` + `npm install`'dan):**
+
+| Kontrol | Sonuç |
+|---|---|
+| `npm install` | ✓ exit 0 |
+| `npm run lint` | ✓ "No ESLint warnings or errors" |
+| `npm run build` | ✓ exit 0 |
+| `npm run dev` + `.env.local` **hiç yokken** | ✓ `/`, `/login`, `/register`, `/search`, `/rankings`, `/career-match` hepsi 200 |
+| `npm run dev` + **gerçekçi ama geçersiz** Supabase URL/anon key ile | ✓ aynı sayfalar hâlâ 200 (bağlantı hatası zarifçe ele alınıyor) |
+
