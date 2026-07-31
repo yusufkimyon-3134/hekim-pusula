@@ -70,7 +70,7 @@ export default async function HomePage() {
           >
             <Input
               name="q"
-              placeholder="Hastane, il, ilçe veya branş ara… (örn. “Konya Göz”)"
+              placeholder="Hastane, il, ilçe veya branş ara… (örn. “Reyhanlı Dahiliye”)"
               aria-label="Kurum veya klinik ara"
               className="h-11 border-transparent bg-white text-foreground sm:flex-1"
             />
