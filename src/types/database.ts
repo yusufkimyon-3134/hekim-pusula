@@ -39,6 +39,8 @@ export type ReviewStatus = "pending" | "approved" | "rejected";
 export type VerificationStatus = "pending" | "approved" | "rejected";
 export type VerificationDocumentType = "diploma" | "specialty_certificate";
 
+export type LegalDocumentType = "kvkk_aydinlatma" | "kullanim_kosullari";
+
 export type ReviewTopic =
   | "education"
   | "workload"
@@ -364,6 +366,24 @@ export interface Database {
             referencedColumns: ["id"];
           }
         ];
+      };
+      legal_acceptances: {
+        Row: {
+          id: string;
+          user_id: string;
+          document_type: LegalDocumentType;
+          version: string;
+          accepted_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          document_type: LegalDocumentType;
+          version: string;
+          accepted_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["legal_acceptances"]["Insert"]>;
+        Relationships: [];
       };
     };
     Views: {
