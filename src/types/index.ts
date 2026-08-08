@@ -1,4 +1,9 @@
-import type { DoctorRole, HospitalType } from "./database";
+import type {
+  DoctorRole,
+  HospitalType,
+  VerificationDocumentType,
+  VerificationStatus,
+} from "./database";
 
 export type {
   HospitalType,
@@ -7,6 +12,8 @@ export type {
   ReportReason,
   ReviewStatus,
   ReviewTopic,
+  VerificationStatus,
+  VerificationDocumentType,
 } from "./database";
 
 /**
@@ -108,6 +115,19 @@ export interface ReviewWithScores {
   authorHelpfulVotes: number;
   authorReputationScore: number;
   authorIsVerified: boolean;
+  /**
+   * Yorum bazlı rumuz görünürlüğü: yazar bu YORUMDA rumuzunu göstermeyi
+   * seçtiyse (`show_nickname=true`) dolu, aksi halde `null`. Veritabanı
+   * seviyesinde (view içinde) hesaplanır — burada ayrıca bir gizleme
+   * mantığı YOK, `null` zaten "gösterilmemeli" demek.
+   */
+  authorNickname: string | null;
+  /**
+   * Bu review'ın HAM `show_nickname` tercihi (yazarın kendisi için —
+   * `authorNickname`'den farklı: düzenleme formunun checkbox'ını doğru
+   * durumda göstermek için kullanılıyor, herkese açık gösterim için değil).
+   */
+  showNickname: boolean;
   /** Sprint 7: bu klinikteki toplam faydalı oy sayısı. */
   helpfulCount: number;
   /** Sprint 7: giriş yapmış kullanıcı bu review'ın sahibi mi (düzenle/sil göstermek için). */
@@ -128,6 +148,8 @@ export interface ReviewInput {
   cityScore: number;
   educationScore: number;
   academicScore: number;
+  /** Bu yorumda yazarın rumuzunu göster (varsayılan false — anonim). */
+  showNickname: boolean;
 }
 
 /** Sprint 7: kendi itibarın (profil sayfası için) — `get_my_reputation()`. */
@@ -208,4 +230,15 @@ export interface MostDiscussedHospital {
   hospitalName: string;
   hospitalCity: string;
   recentReviewCount: number;
+}
+
+/** Hekim Doğrulaması v1 — bkz. `doctor-verification-repository.ts`. */
+export interface VerificationRequest {
+  id: string;
+  status: VerificationStatus;
+  documentType: VerificationDocumentType;
+  fullName: string;
+  rejectionReason: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
 }

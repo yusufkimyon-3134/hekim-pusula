@@ -1,0 +1,81 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/database";
+import type { VerificationDocumentType, VerificationRequest } from "@/types";
+
+type VerificationRequestRow = Database["public"]["Tables"]["doctor_verification_requests"]["Row"];
+
+const STORAGE_BUCKET = "doctor-verification-documents";
+
+function toVerificationRequest(row: VerificationRequestRow): VerificationRequest {
+  return {
+    id: row.id,
+    status: row.status,
+    documentType: row.document_type,
+    fullName: row.full_name,
+    rejectionReason: row.rejection_reason,
+    createdAt: row.created_at,
+    reviewedAt: row.reviewed_at,
+  };
+}
+
+/**
+ * Hekim Doğrulaması v1 — `doctor_verification_requests` tablosuna ve
+ * özel (private) `doctor-verification-documents` storage bucket'ına
+ * erişim katmanı. RLS zaten "yalnızca kendi başvurun" kuralını
+ * zorluyor; burada ekstra bir yetki kontrolü yapılmıyor.
+ */
+export class DoctorVerificationRepository {
+  constructor(private readonly client: SupabaseClient<Database>) {}
+
+  /** Bir hekimin EN SON başvurusu (varsa) — reddedilip yeniden başvurulmuşsa en yenisi. */
+  async findLatestRequest(doctorId: string): Promise<VerificationRequest | null> {
+    const { data, error } = await this.client
+      .from("doctor_verification_requests")
+      .select("*")
+      .eq("doctor_id", doctorId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Doğrulama başvurusu getirilemedi: ${error.message}`);
+    }
+    return data ? toVerificationRequest(data) : null;
+  }
+
+  /**
+   * Belgeyi private bucket'a yükler. Yol kuralı `{doctorId}/{dosya}` —
+   * storage RLS politikaları (bkz. migration) bu ilk klasör segmentine
+   * göre erişimi sınırlıyor, bu yüzden yol biçimi kritik.
+   */
+  async uploadDocument(doctorId: string, file: File): Promise<string> {
+    const safeExtension = file.name.split(".").pop()?.toLowerCase() ?? "pdf";
+    const path = `${doctorId}/${Date.now()}.${safeExtension}`;
+
+    const { error } = await this.client.storage.from(STORAGE_BUCKET).upload(path, file, {
+      upsert: false,
+    });
+
+    if (error) {
+      throw new Error(`Belge yüklenemedi: ${error.message}`);
+    }
+    return path;
+  }
+
+  /** Yeni bir doğrulama başvurusu oluşturur (her zaman 'pending' — bkz. RLS with check). */
+  async createRequest(
+    doctorId: string,
+    input: { fullName: string; documentType: VerificationDocumentType; documentPath: string }
+  ): Promise<void> {
+    const { error } = await this.client.from("doctor_verification_requests").insert({
+      doctor_id: doctorId,
+      full_name: input.fullName,
+      document_type: input.documentType,
+      document_path: input.documentPath,
+    });
+
+    if (error) {
+      throw new Error(`Doğrulama başvurusu oluşturulamadı: ${error.message}`);
+    }
+  }
+}

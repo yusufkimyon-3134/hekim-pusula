@@ -36,6 +36,9 @@ export type ReportReason =
 
 export type ReviewStatus = "pending" | "approved" | "rejected";
 
+export type VerificationStatus = "pending" | "approved" | "rejected";
+export type VerificationDocumentType = "diploma" | "specialty_certificate";
+
 export type ReviewTopic =
   | "education"
   | "workload"
@@ -174,6 +177,7 @@ export interface Database {
           would_choose_again: boolean;
           comment: string | null;
           status: ReviewStatus;
+          show_nickname: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -187,6 +191,7 @@ export interface Database {
           would_choose_again: boolean;
           comment?: string | null;
           status?: ReviewStatus;
+          show_nickname?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -327,6 +332,39 @@ export interface Database {
           }
         ];
       };
+      doctor_verification_requests: {
+        Row: {
+          id: string;
+          doctor_id: string;
+          full_name: string;
+          document_type: VerificationDocumentType;
+          document_path: string;
+          status: VerificationStatus;
+          rejection_reason: string | null;
+          created_at: string;
+          reviewed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          doctor_id: string;
+          full_name: string;
+          document_type: VerificationDocumentType;
+          document_path: string;
+          status?: VerificationStatus;
+          rejection_reason?: string | null;
+          created_at?: string;
+          reviewed_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["doctor_verification_requests"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "doctor_verification_requests_doctor_id_fkey";
+            columns: ["doctor_id"];
+            referencedRelation: "doctors";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: {
       hospital_city_counts: {
@@ -369,6 +407,7 @@ export interface Database {
           author_helpful_votes: number;
           author_reputation_score: number;
           author_is_verified: boolean;
+          visible_nickname: string | null;
         };
         Relationships: [];
       };
@@ -436,6 +475,7 @@ export interface Database {
           p_city_score: number;
           p_education_score: number;
           p_academic_score: number;
+          p_show_nickname?: boolean;
         };
         Returns: undefined;
       };
@@ -453,6 +493,7 @@ export interface Database {
           p_city_score: number;
           p_education_score: number;
           p_academic_score: number;
+          p_show_nickname?: boolean;
         };
         Returns: string;
       };

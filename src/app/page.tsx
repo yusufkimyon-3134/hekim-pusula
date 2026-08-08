@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Container } from "@/components/layout/container";
 import { LogoMark } from "@/components/logo-mark";
-import { Input } from "@/components/ui/input";
+import { HospitalSearchFields } from "@/components/hospital-search-fields";
 import { Button } from "@/components/ui/button";
 import {
   DashboardSection,
@@ -66,15 +66,14 @@ export default async function HomePage() {
 
           <form
             action="/search"
-            className="flex w-full max-w-xl flex-col gap-2 sm:flex-row sm:justify-center"
+            className="flex w-full max-w-xl flex-col gap-2 sm:flex-row sm:items-start sm:justify-center"
           >
-            <Input
-              name="q"
-              placeholder="Hastane, il, ilçe veya branş ara… (örn. “Reyhanlı Dahiliye”)"
-              aria-label="Kurum veya klinik ara"
-              className="h-11 border-transparent bg-white text-foreground sm:flex-1"
-            />
-            <Button type="submit" size="lg" className="h-11 sm:w-auto">
+            <HospitalSearchFields />
+            <Button
+  type="submit"
+  size="lg"
+  className="h-11 bg-white font-semibold text-primary shadow-lg transition-all hover:scale-[1.02] hover:bg-white/90 hover:shadow-xl active:translate-y-px active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary sm:w-auto"
+>
               Ara
             </Button>
           </form>

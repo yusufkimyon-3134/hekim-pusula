@@ -29,6 +29,7 @@ export async function editReview(formData: FormData) {
     cityScore: formData.get("cityScore"),
     educationScore: formData.get("educationScore"),
     academicScore: formData.get("academicScore"),
+    showNickname: formData.get("showNickname"),
   });
 
   if (!parsed.success) {

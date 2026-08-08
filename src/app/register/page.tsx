@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Mail } from "lucide-react";
 import { Container } from "@/components/layout/container";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,9 +10,33 @@ import { register } from "./actions";
 export default async function RegisterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; checkEmail?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, checkEmail } = await searchParams;
+
+  if (checkEmail === "1") {
+    return (
+      <Container className="flex justify-center py-16">
+        <Card className="w-full max-w-sm">
+          <CardContent className="flex flex-col items-center gap-4 pt-6 text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-accent">
+              <Mail className="size-5 text-accent-foreground" />
+            </div>
+            <div className="space-y-1">
+              <p className="font-medium">E-postanı kontrol et</p>
+              <p className="text-sm text-muted-foreground">
+                Aktivasyon bağlantısını e-posta adresine gönderdik. Hesabını
+                açmak için e-postandaki bağlantıya tıkla.
+              </p>
+            </div>
+            <Button asChild variant="outline" className="mt-2 w-full">
+              <Link href="/login">Giriş sayfasına dön</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </Container>
+    );
+  }
 
   return (
     <Container className="flex justify-center py-16">
@@ -39,6 +64,46 @@ export default async function RegisterPage({
               <Label htmlFor="password">Şifre</Label>
               <Input id="password" name="password" type="password" minLength={6} required />
               <p className="text-xs text-muted-foreground">En az 6 karakter.</p>
+            </div>
+
+            <div className="space-y-2.5 border-t border-border pt-4">
+              <label className="flex items-start gap-2.5 text-sm">
+                <input
+                  type="checkbox"
+                  name="acceptKvkk"
+                  required
+                  className="mt-0.5 size-4 shrink-0 rounded border-input"
+                />
+                <span>
+                  <Link
+                    href="/kvkk-aydinlatma"
+                    target="_blank"
+                    className="text-foreground underline-offset-2 hover:underline"
+                  >
+                    KVKK Aydınlatma Metni
+                  </Link>
+                  &apos;ni okudum.
+                </span>
+              </label>
+
+              <label className="flex items-start gap-2.5 text-sm">
+                <input
+                  type="checkbox"
+                  name="acceptTerms"
+                  required
+                  className="mt-0.5 size-4 shrink-0 rounded border-input"
+                />
+                <span>
+                  <Link
+                    href="/kullanim-kosullari"
+                    target="_blank"
+                    className="text-foreground underline-offset-2 hover:underline"
+                  >
+                    Kullanım Koşulları
+                  </Link>
+                  &apos;nı kabul ediyorum.
+                </span>
+              </label>
             </div>
 
             <Button type="submit" className="w-full">

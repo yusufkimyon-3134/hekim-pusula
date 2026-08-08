@@ -1,13 +1,9 @@
 import Link from "next/link";
 import { Container } from "@/components/layout/container";
 import { LogoMark } from "@/components/logo-mark";
+import { SiteHeaderNav } from "@/components/layout/site-header-nav";
 import { getAuthUserId } from "@/lib/auth";
 import { logout } from "@/lib/actions/logout";
-
-const navItems = [
-  { href: "/", label: "Ana sayfa" },
-  { href: "/search", label: "Kurum ara" },
-];
 
 export async function SiteHeader() {
   // Not: profil tamamlanmamış olsa bile (doctors satırı henüz yoksa)
@@ -23,15 +19,7 @@ export async function SiteHeader() {
           <span>Hekim Pusula</span>
         </Link>
         <nav aria-label="Ana menü" className="flex items-center gap-6 text-sm">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="opacity-90 transition-opacity hover:opacity-100"
-            >
-              {item.label}
-            </Link>
-          ))}
+          <SiteHeaderNav />
 
           {authUserId ? (
             <>

@@ -91,6 +91,8 @@ export class ReviewRepository {
           authorHelpfulVotes: stats?.author_helpful_votes ?? 0,
           authorReputationScore: stats?.author_reputation_score ?? 0,
           authorIsVerified: stats?.author_is_verified ?? false,
+          authorNickname: stats?.visible_nickname ?? null,
+          showNickname: row.show_nickname,
           helpfulCount: helpfulCountByReview.get(row.id) ?? 0,
           isMine: Boolean(myDoctorId) && myWorkplaceIds.has(row.doctor_workplace_id),
         };
@@ -145,6 +147,7 @@ export class ReviewRepository {
       p_city_score: input.cityScore,
       p_education_score: input.educationScore,
       p_academic_score: input.academicScore,
+      p_show_nickname: input.showNickname,
     });
 
     if (error) {
@@ -169,6 +172,7 @@ export class ReviewRepository {
       p_city_score: input.cityScore,
       p_education_score: input.educationScore,
       p_academic_score: input.academicScore,
+      p_show_nickname: input.showNickname,
     });
 
     if (error) {
@@ -282,6 +286,8 @@ export class ReviewRepository {
       authorHelpfulVotes: 0,
       authorReputationScore: 0,
       authorIsVerified: false,
+      authorNickname: null,
+      showNickname: data.show_nickname,
       helpfulCount: 0,
       isMine,
     };

@@ -121,8 +121,26 @@ export function ReviewFormFields({ defaults }: { defaults?: ReviewWithScores }) 
         />
       </div>
 
+      <div className="flex items-start gap-2.5 rounded-md border border-border bg-accent/40 px-3 py-2.5">
+        <input
+          type="checkbox"
+          id="showNickname"
+          name="showNickname"
+          defaultChecked={defaults?.showNickname ?? false}
+          className="mt-0.5 size-4 shrink-0 rounded border-input"
+        />
+        <Label htmlFor="showNickname" className="text-sm font-normal leading-relaxed">
+          Rumuzumu bu yorumda göster
+          <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+            İşaretlemezsen bu yorum tamamen anonim kalır. İşaretlersen, yalnızca
+            bu yorumun yanında rumuzun görünür — gerçek adın, e-postan veya
+            başka bir kimlik bilgin hiçbir zaman gösterilmez.
+          </span>
+        </Label>
+      </div>
+
       <p className="text-xs text-muted-foreground">
-        Kimliğin gösterilmez — yalnızca unvan/branşın görünür.
+        Kimliğin gösterilmez — yalnızca unvan/branşın (ve yukarıda seçersen rumuzun) görünür.
       </p>
     </>
   );

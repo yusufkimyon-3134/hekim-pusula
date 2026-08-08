@@ -32,6 +32,14 @@ export default async function ReviewPage({
     redirect(`/profile?redirectTo=${encodeURIComponent(`/clinic/${id}/review`)}`);
   }
 
+  // Hekim Doğrulaması v1: doğrulanmamış hekimler yorum yazamaz — bu
+  // kontrol `submit_review` SQL fonksiyonunda da AYRICA var (savunma
+  // katmanı), burada yalnızca kullanıcıyı doğru yere (profildeki
+  // doğrulama bölümüne) yönlendirmek için erken bir kontrol.
+  if (!doctor.isVerified) {
+    redirect(`/profile?redirectTo=${encodeURIComponent(`/clinic/${id}/review`)}`);
+  }
+
   const clinicRepository = new ClinicRepository(supabase);
   const reviewRepository = new ReviewRepository(supabase);
 

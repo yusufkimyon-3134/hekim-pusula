@@ -11,7 +11,7 @@ Bu sprint yalnızca **keşif** (arama, filtreleme, listeleme) üzerineydi. Kimli
 
 ### 2. Global arama
 Tek bir arama kutusu, hastane adı + il + ilçe + branş üzerinde **çok kelimeli, akıllı** arama yapıyor: sorgu kelimelere ayrılır, her kelime en az bir alanda eşleşmelidir (kelimeler arası AND, alanlar arası OR). Örnekler gerçek Postgres'te test edildi:
-- `"Konya Göz"` → tam olarak Konya'daki Göz Hastalıkları kliniğini buluyor
+- `"Hastane, il, ilçe veya branş ara"` → tam olarak Konya'daki Göz Hastalıkları kliniğini buluyor
 - `"Hatay"` → o ildeki tüm klinikleri/hastaneleri buluyor
 
 **Bilinen sınır:** Arama harfi harfine (`ILIKE`) çalışıyor, eşanlamlı/argo terimleri (örn. "Dahiliye" ↔ resmi ad "İç Hastalıkları") bilmiyor. Bunu çözmek bir "branş eşanlamlıları" tablosu gerektirir — kapsam dışı bırakıldı, `ROADMAP.md`'ye not düşüldü.

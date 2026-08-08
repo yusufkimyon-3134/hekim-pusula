@@ -1,3 +1,4 @@
+import * as React from "react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -6,9 +7,10 @@ import { cn } from "@/lib/utils";
  * çalışan bir form deneyimi için). Arama filtreleri ve profil/review
  * formlarında tekrarlanan stil burada toplandı.
  */
-function NativeSelect({ className, ...props }: React.ComponentProps<"select">) {
+const NativeSelect = React.forwardRef<HTMLSelectElement, React.ComponentProps<"select">>(function NativeSelect({ className, ...props }, ref) {
   return (
     <select
+      ref={ref}
       data-slot="native-select"
       className={cn(
         "h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:border-ring",
@@ -17,6 +19,6 @@ function NativeSelect({ className, ...props }: React.ComponentProps<"select">) {
       {...props}
     />
   );
-}
+});
 
 export { NativeSelect };

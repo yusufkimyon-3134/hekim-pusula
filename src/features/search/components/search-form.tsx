@@ -43,7 +43,7 @@ export function SearchForm({
         <Input
           name="q"
           defaultValue={defaultQuery}
-          placeholder="Hastane, il, ilçe veya branş ara… (örn. “Konya Göz”)"
+          placeholder="Hastane veya branş adı yaz"
           aria-label="Kurum veya klinik ara"
           className="sm:flex-1"
         />
@@ -80,10 +80,6 @@ export function SearchForm({
             </option>
           ))}
         </NativeSelect>
-
-        <Button type="submit" variant="outline" size="sm" className="sm:w-auto">
-          Filtrele
-        </Button>
       </div>
 
       <details className="rounded-md border border-border" open={hasAdvancedFilters}>

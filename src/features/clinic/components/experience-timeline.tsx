@@ -76,11 +76,18 @@ export function ExperienceTimeline({
             </div>
             <div className="min-w-0 flex-1 space-y-2 pt-0.5">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <ReputationBadge
-                  reviewCount={review.authorReviewCount}
-                  helpfulVotes={review.authorHelpfulVotes}
-                  isVerified={review.authorIsVerified}
-                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <ReputationBadge
+                    reviewCount={review.authorReviewCount}
+                    helpfulVotes={review.authorHelpfulVotes}
+                    isVerified={review.authorIsVerified}
+                  />
+                  {review.authorNickname && (
+                    <span className="text-xs font-medium text-muted-foreground">
+                      @{review.authorNickname}
+                    </span>
+                  )}
+                </div>
                 {review.isMine && (
                   <ReviewOwnerActions reviewId={review.id} clinicId={clinicId} />
                 )}

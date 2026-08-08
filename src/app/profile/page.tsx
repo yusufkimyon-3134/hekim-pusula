@@ -7,8 +7,10 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReputationBadge } from "@/components/reputation-badge";
+import { VerificationCard } from "@/features/profile/components/verification-card";
 import { createClient } from "@/lib/supabase/server";
 import { DoctorRepository } from "@/lib/repositories/doctor-repository";
+import { DoctorVerificationRepository } from "@/lib/repositories/doctor-verification-repository";
 import { DOCTOR_ROLE_OPTIONS } from "@/lib/doctor-role";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 import { saveProfile } from "./actions";
@@ -20,9 +22,16 @@ function formatMemberSince(iso: string): string {
 export default async function ProfilePage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; saved?: string; redirectTo?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    saved?: string;
+    redirectTo?: string;
+    verificationError?: string;
+    verificationSubmitted?: string;
+  }>;
 }) {
-  const { error, saved, redirectTo } = await searchParams;
+  const { error, saved, redirectTo, verificationError, verificationSubmitted } =
+    await searchParams;
 
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
@@ -34,9 +43,11 @@ export default async function ProfilePage({
   }
 
   const doctorRepository = new DoctorRepository(supabase);
-  const [doctor, reputation] = await Promise.all([
+  const verificationRepository = new DoctorVerificationRepository(supabase);
+  const [doctor, reputation, latestVerificationRequest] = await Promise.all([
     doctorRepository.findById(userData.user.id),
     doctorRepository.getMyReputation(),
+    verificationRepository.findLatestRequest(userData.user.id),
   ]);
 
   return (
@@ -94,6 +105,32 @@ export default async function ProfilePage({
           <p className="rounded-md bg-accent px-3 py-2 text-sm text-accent-foreground">
             Devam edebilmek için önce profilini tamamlaman gerekiyor.
           </p>
+        )}
+
+        {redirectTo && doctor && !doctor.isVerified && (
+          <p className="rounded-md bg-accent px-3 py-2 text-sm text-accent-foreground">
+            Yorum yazabilmek için önce hekim doğrulamanı tamamlaman gerekiyor —
+            aşağıdan belge yükleyerek başvurabilirsin.
+          </p>
+        )}
+
+        {doctor && (
+          <>
+            {verificationSubmitted && !verificationError && (
+              <p className="rounded-md bg-accent px-3 py-2 text-sm text-accent-foreground">
+                Doğrulama başvurun alındı, inceleniyor.
+              </p>
+            )}
+            {verificationError && (
+              <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {verificationError}
+              </p>
+            )}
+            <VerificationCard
+              isVerified={doctor.isVerified}
+              latestRequest={latestVerificationRequest}
+            />
+          </>
         )}
 
         <Card>

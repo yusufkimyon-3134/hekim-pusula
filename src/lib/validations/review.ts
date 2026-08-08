@@ -15,6 +15,13 @@ export const reviewSchema = z.object({
   cityScore: z.coerce.number().int().min(1).max(5),
   educationScore: z.coerce.number().int().min(1).max(5),
   academicScore: z.coerce.number().int().min(1).max(5),
+  // HTML checkbox: işaretliyse formData'da "on" (ya da input'un value'su)
+  // gelir, işaretli değilse hiç gelmez (undefined) — bu yüzden boolean
+  // değil, opsiyonel bir string olarak alınıp dönüştürülüyor.
+  showNickname: z
+    .string()
+    .optional()
+    .transform((v) => v === "on"),
 });
 
 export type ReviewFormValues = z.infer<typeof reviewSchema>;
