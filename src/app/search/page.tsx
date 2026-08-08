@@ -197,7 +197,7 @@ export default async function SearchPage({
           <SectionLabel>Hastaneler ({hospitals.length})</SectionLabel>
           <div className="mt-3 space-y-3">
             {hospitals.map((hospital) => (
-              <HospitalCard key={hospital.id} hospital={hospital} query={q} />
+              <HospitalCard key={hospital.id} hospital={hospital}  />
             ))}
           </div>
         </div>
@@ -213,7 +213,7 @@ export default async function SearchPage({
                 branch={clinic.branch}
                 href={`/clinic/${clinic.clinicId}`}
                 subtitle={`${clinic.hospitalName} — ${clinic.hospitalDistrict}, ${clinic.hospitalCity}`}
-                query={q}
+                
               />
             ))}
           </div>
