@@ -15,39 +15,25 @@ function formatReviewCount(count: number): string {
   return count > 0 ? `${count} değerlendirme` : "Henüz değerlendirme yok";
 }
 
-/**
- * Ana sayfadaki hero arama kutusu — yazarken (debounce'lu, min 2
- * karakter) gerçek hastane/klinik önerilerini gösterir. Bir öneriye
- * tıklanırsa/Enter'a basılırsa doğrudan o hastane/klinik sayfasına
- * gidilir. Öneri seçilmeden Enter'a basılırsa ya da dropdown hiç
- * açılmadıysa, `<input name="q">` çevreleyen `<form action="/search">`
- * ile native submit'e devam eder — serbest metin araması (mevcut
- * `/search?q=` akışı) hiç bozulmuyor.
- *
- * Not: Bu, `city-search.tsx`/`hospital-search-fields.tsx`'in YERİNE
- * hero'da kullanılıyor — ama o dosyalar SİLİNMEDİ, bozulmadı; yalnızca
- * şu an ana sayfada import edilmiyorlar. Bu bilinçli bir tercih: il
- * önerisi ile hastane/klinik önerisi farklı tıklama davranışlarına
- * (biri input'u doldurur, diğeri sayfa değiştirir) sahip olduğu için
- * aynı dropdown'da güvenle birleştirilemezler.
- */
 export function HospitalSuggestSearch({
   name,
   placeholder,
   ariaLabel,
   className,
+  defaultValue = "",
 }: {
   name: string;
   placeholder?: string;
   ariaLabel?: string;
   className?: string;
+  defaultValue?: string;
 }) {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(defaultValue);
   const [suggestions, setSuggestions] = useState<SuggestionWithHref[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -76,8 +62,6 @@ export function HospitalSuggestSearch({
           setHighlightedIndex(-1);
         })
         .catch((err) => {
-          // Aborted istekler beklenen bir durum (kullanıcı yazmaya devam
-          // etti) — yalnızca gerçek hataları logla.
           if (err.name !== "AbortError") {
             console.error("[HospitalSuggestSearch] Öneriler alınamadı:", err);
           }
@@ -89,7 +73,6 @@ export function HospitalSuggestSearch({
     };
   }, [value]);
 
-  // Dışarı tıklanınca listeyi kapat.
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -126,12 +109,7 @@ export function HospitalSuggestSearch({
             setHighlightedIndex(-1);
             return;
           }
-
-          // Dropdown açık değilse (ya da sonuç yoksa) klavyeye hiç
-          // müdahale etme — Enter'ın formu normal şekilde submit etmesi
-          // (mevcut /search akışı) bozulmasın.
           if (!isOpen || suggestions.length === 0) return;
-
           if (e.key === "ArrowDown") {
             e.preventDefault();
             setHighlightedIndex((prev) => (prev + 1) % suggestions.length);
