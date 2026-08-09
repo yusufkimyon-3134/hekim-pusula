@@ -8,7 +8,6 @@ import { HospitalRepository } from "@/lib/repositories/hospital-repository";
 import { ClinicRepository } from "@/lib/repositories/clinic-repository";
 import { HOSPITAL_TYPE_LABELS } from "@/lib/hospital-type";
 
-// Yeni eklenen kliniklerin ve değerlendirmelerin betada kısa sürede görünmesi için.
 export const revalidate = 60;
 
 export default async function HospitalDetailPage({
@@ -48,11 +47,11 @@ export default async function HospitalDetailPage({
       />
 
       <div className="mt-8">
-        <SectionLabel>Klinikler ({sortedClinics.length})</SectionLabel>
+        <SectionLabel>Değerlendirme alanları ({sortedClinics.length})</SectionLabel>
 
         {sortedClinics.length === 0 ? (
           <p className="mt-4 text-sm text-muted-foreground">
-            Bu hastane için henüz kayıtlı klinik yok.
+            Bu hastane için henüz değerlendirme alanı kayıtlı değil.
           </p>
         ) : (
           <div className="mt-3 space-y-3">
