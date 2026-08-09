@@ -1,6 +1,7 @@
 import type {
   DoctorRole,
   HospitalType,
+  SearchSuggestionType,
   VerificationDocumentType,
   VerificationStatus,
 } from "./database";
@@ -12,6 +13,8 @@ export type {
   ReportReason,
   ReviewStatus,
   ReviewTopic,
+  LegalDocumentType,
+  SearchSuggestionType,
   VerificationStatus,
   VerificationDocumentType,
 } from "./database";
@@ -241,4 +244,13 @@ export interface VerificationRequest {
   rejectionReason: string | null;
   createdAt: string;
   reviewedAt: string | null;
+}
+
+/** Ana sayfadaki gerçek zamanlı öneri kutusu — bkz. `search-suggestion-repository.ts`. */
+export interface SearchSuggestion {
+  type: SearchSuggestionType;
+  id: string;
+  title: string;
+  subtitle: string;
+  reviewCount: number;
 }

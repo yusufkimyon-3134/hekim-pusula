@@ -41,6 +41,8 @@ export type VerificationDocumentType = "diploma" | "specialty_certificate";
 
 export type LegalDocumentType = "kvkk_aydinlatma" | "kullanim_kosullari";
 
+export type SearchSuggestionType = "hospital" | "clinic";
+
 export type ReviewTopic =
   | "education"
   | "workload"
@@ -433,6 +435,16 @@ export interface Database {
       };
     };
     Functions: {
+      search_suggestions: {
+        Args: { p_query: string; p_limit?: number };
+        Returns: {
+          result_type: SearchSuggestionType;
+          id: string;
+          title: string;
+          subtitle: string;
+          review_count: number;
+        }[];
+      };
       top_clinics_this_month: {
         Args: { p_limit?: number };
         Returns: {
