@@ -24,6 +24,12 @@ export async function SiteHeader() {
           {authUserId ? (
             <>
               <Link
+                href="/questions"
+                className="opacity-90 transition-opacity hover:opacity-100"
+              >
+                Sorularım
+              </Link>
+              <Link
                 href="/profile"
                 className="opacity-90 transition-opacity hover:opacity-100"
               >

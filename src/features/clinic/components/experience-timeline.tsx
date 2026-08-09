@@ -1,4 +1,5 @@
-import { Clock, ThumbsUp, ThumbsDown } from "lucide-react";
+import Link from "next/link";
+import { Clock, MessageCircle, ThumbsUp, ThumbsDown } from "lucide-react";
 import { ReputationBadge } from "@/components/reputation-badge";
 import { HelpfulVoteButton } from "@/features/review/components/helpful-vote-button";
 import { ReportForm } from "@/features/review/components/report-form";
@@ -113,6 +114,13 @@ export function ExperienceTimeline({
                     clinicId={clinicId}
                     helpfulCount={review.helpfulCount}
                   />
+                  <Link
+                    href={`/clinic/${clinicId}/question/${review.id}`}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-xs font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <MessageCircle className="size-3.5" />
+                    Özel soru sor
+                  </Link>
                   <ReportForm reviewId={review.id} clinicId={clinicId} />
                 </div>
               )}

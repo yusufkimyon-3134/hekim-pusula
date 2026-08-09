@@ -387,6 +387,37 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["legal_acceptances"]["Insert"]>;
         Relationships: [];
       };
+      review_questions: {
+        Row: {
+          id: string;
+          review_id: string;
+          asker_doctor_id: string;
+          author_doctor_id: string;
+          question: string;
+          answer: string | null;
+          created_at: string;
+          answered_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          review_id: string;
+          asker_doctor_id: string;
+          author_doctor_id: string;
+          question: string;
+          answer?: string | null;
+          created_at?: string;
+          answered_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["review_questions"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "review_questions_review_id_fkey";
+            columns: ["review_id"];
+            referencedRelation: "reviews";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: {
       hospital_city_counts: {
@@ -584,6 +615,14 @@ export interface Database {
           avg_workload: number | null;
           recommend_percentage: number | null;
         }[];
+      };
+      create_review_question: {
+        Args: { p_review_id: string; p_question: string };
+        Returns: string;
+      };
+      answer_review_question: {
+        Args: { p_question_id: string; p_answer: string };
+        Returns: undefined;
       };
     };
   };
