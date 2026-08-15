@@ -13,6 +13,7 @@ import { DoctorRepository } from "@/lib/repositories/doctor-repository";
 import { DoctorVerificationRepository } from "@/lib/repositories/doctor-verification-repository";
 import { DOCTOR_ROLE_OPTIONS } from "@/lib/doctor-role";
 import { safeRedirectPath } from "@/lib/safe-redirect";
+import { safeQuery } from "@/lib/safe-query";
 import { saveProfile } from "./actions";
 
 function formatMemberSince(iso: string): string {
@@ -44,10 +45,16 @@ export default async function ProfilePage({
 
   const doctorRepository = new DoctorRepository(supabase);
   const verificationRepository = new DoctorVerificationRepository(supabase);
+  // Her sorgu ayrı ayrı safeQuery ile sarılı: bunlardan biri (örn.
+  // henüz uygulanmamış bir migration yüzünden — canlıda şema kod ile
+  // senkron değilse) beklenmeyen bir DB hatası verirse, TÜM sayfa
+  // çökmek yerine o bölüm boş/varsayılan durumda kalır. Bu, e-posta
+  // aktivasyonundan sonra ilk kez /profile'a düşen kullanıcılar için
+  // özellikle kritik — bu an, sayfanın en sık ve en riskli çalıştığı an.
   const [doctor, reputation, latestVerificationRequest] = await Promise.all([
-    doctorRepository.findById(userData.user.id),
-    doctorRepository.getMyReputation(),
-    verificationRepository.findLatestRequest(userData.user.id),
+    safeQuery(() => doctorRepository.findById(userData.user.id), null),
+    safeQuery(() => doctorRepository.getMyReputation(), null),
+    safeQuery(() => verificationRepository.findLatestRequest(userData.user.id), null),
   ]);
 
   return (
@@ -255,3 +262,4 @@ export default async function ProfilePage({
     </Container>
   );
 }
+
