@@ -26,10 +26,8 @@ export default function RootError({
     <Container className="py-16 text-center">
       <h1 className="text-xl font-semibold">Bir şeyler ters gitti</h1>
       <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-        Sayfa yüklenirken bir hata oluştu. Bu genellikle Supabase
-        bağlantısının henüz yapılandırılmamış olmasından kaynaklanır —
-        <code className="mx-1 rounded bg-muted px-1 py-0.5">.env.local</code>
-        dosyanı kontrol et.
+        Sayfa yüklenirken geçici bir hata oluştu. Tekrar deneyebilir veya
+        giriş sayfasına dönüp oturumunu yeniden açabilirsin.
       </p>
       <Button className="mt-6" onClick={() => reset()}>
         Tekrar dene
@@ -37,3 +35,4 @@ export default function RootError({
     </Container>
   );
 }
+
