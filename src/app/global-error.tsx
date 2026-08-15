@@ -26,9 +26,7 @@ export default function GlobalError({
       <body style={{ fontFamily: "system-ui, sans-serif", padding: "3rem 1.5rem", textAlign: "center" }}>
         <h1 style={{ fontSize: "1.25rem", fontWeight: 600 }}>Bir şeyler ters gitti</h1>
         <p style={{ marginTop: "0.5rem", color: "#565a54", maxWidth: "24rem", marginInline: "auto" }}>
-          Uygulama yüklenirken beklenmeyen bir hata oluştu. Bu genellikle
-          Supabase ortam değişkenlerinin (.env.local) eksik olmasından
-          kaynaklanır.
+          Uygulama yüklenirken geçici bir hata oluştu. Lütfen tekrar dene.
         </p>
         <button
           onClick={() => reset()}
@@ -50,3 +48,4 @@ export default function GlobalError({
     </html>
   );
 }
+
