@@ -1,11 +1,13 @@
 import Link from "next/link";
-import { SearchX } from "lucide-react";
+import { SearchX, Lock, Clock } from "lucide-react";
 import { Container } from "@/components/layout/container";
 import { SectionLabel } from "@/components/section-label";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { HospitalRepository } from "@/lib/repositories/hospital-repository";
 import { ClinicRepository } from "@/lib/repositories/clinic-repository";
+import { DoctorRepository } from "@/lib/repositories/doctor-repository";
 import { SearchForm } from "@/features/search/components/search-form";
 import { HospitalCard } from "@/features/hospital/components/hospital-card";
 import { ClinicCard } from "@/features/clinic/components/clinic-card";
@@ -60,6 +62,15 @@ export default async function SearchPage({
   const supabase = await createClient();
   const hospitalRepository = new HospitalRepository(supabase);
   const clinicRepository = new ClinicRepository(supabase);
+
+  // Auth kontrolü
+  const { data: userData } = await supabase.auth.getUser();
+  let isVerified = false;
+  if (userData.user) {
+    const doctorRepository = new DoctorRepository(supabase);
+    const doctor = await doctorRepository.findById(userData.user.id);
+    isVerified = doctor?.isVerified === true;
+  }
 
   const hasAdvancedFilters = Boolean(
     minOverall || minEducation || minAcademic || maxMonthlyShifts
@@ -131,6 +142,28 @@ export default async function SearchPage({
             />
           </div>
         </>
+      )}
+
+      {!userData.user && (
+        <div className="mt-6 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3">
+          <p className="text-sm font-medium text-yellow-900">
+            ⚠️ Yorumları görmek için giriş yapmalısınız
+          </p>
+          <p className="mt-1 text-xs text-yellow-800">
+            Doktor değerlendirmelerini ve çalışma deneyimlerini görmek için lütfen giriş yapın veya kayıt olun.
+          </p>
+        </div>
+      )}
+
+      {userData.user && !isVerified && (
+        <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+          <p className="text-sm font-medium text-blue-900">
+            ⚠️ Yorumları görmek için doktor doğrulaması gerekli
+          </p>
+          <p className="mt-1 text-xs text-blue-800">
+            Doktor değerlendirmelerini ve çalışma deneyimlerini görmek için hekim doğrulamanız gerekir.
+          </p>
+        </div>
       )}
 
       {hasAnyFilter && (
