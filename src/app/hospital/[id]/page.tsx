@@ -60,48 +60,68 @@ export default async function HospitalDetailPage({
 
       <div className="mt-8">
         {!userData.user ? (
-          <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
-              <div className="flex size-12 items-center justify-center rounded-full bg-muted">
-                <Lock className="size-5 text-muted-foreground" />
-              </div>
-              <div className="space-y-1.5">
-                <p className="font-medium">Hekim değerlendirmeleri üyeler içindir</p>
-                <p className="mx-auto max-w-sm text-sm text-muted-foreground">
-                  Yorumları, puanları ve çalışma deneyimlerini görmek için giriş yapın veya ücretsiz kayıt olun.
-                </p>
-              </div>
-              <div className="flex flex-wrap justify-center gap-2">
-                <Button asChild className="gap-2">
-                  <Link href={`/login?next=${encodeURIComponent(`/hospital/${id}`)}&reason=verified`}>
-                    <LogIn className="size-4" />
-                    Giriş yap
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="gap-2">
-                  <Link href="/register">
-                    <UserPlus className="size-4" />
-                    Kayıt ol
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : !isVerified ? (
-          <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
-              <div className="flex size-12 items-center justify-center rounded-full bg-muted">
-                <Clock className="size-5 text-muted-foreground" />
-              </div>
-              <p className="mx-auto max-w-sm text-sm text-muted-foreground">
-                Değerlendirmeleri görmek için hekim doğrulamanın onaylanması
-                gerekiyor.
+          <>
+            <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3">
+              <p className="text-sm font-medium text-yellow-900">
+                ⚠️ Yorumları görmek için giriş yapmalısınız
               </p>
-              <Button asChild variant="outline">
-                <Link href="/profile">Doğrulama durumumu gör</Link>
-              </Button>
-            </CardContent>
-          </Card>
+              <p className="mt-1 text-xs text-yellow-800">
+                Doktor değerlendirmelerini ve çalışma deneyimlerini görmek için lütfen giriş yapın veya kayıt olun.
+              </p>
+            </div>
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
+                <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+                  <Lock className="size-5 text-muted-foreground" />
+                </div>
+                <div className="space-y-1.5">
+                  <p className="font-medium">Hekim değerlendirmeleri üyeler içindir</p>
+                  <p className="mx-auto max-w-sm text-sm text-muted-foreground">
+                    Yorumları, puanları ve çalışma deneyimlerini görmek için giriş yapın veya ücretsiz kayıt olun.
+                  </p>
+                </div>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Button asChild className="gap-2">
+                    <Link href={`/login?next=${encodeURIComponent(`/hospital/${id}`)}&reason=verified`}>
+                      <LogIn className="size-4" />
+                      Giriş yap
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="gap-2">
+                    <Link href="/register">
+                      <UserPlus className="size-4" />
+                      Kayıt ol
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        ) : !isVerified ? (
+          <>
+            <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+              <p className="text-sm font-medium text-blue-900">
+                ⚠️ Yorumları görmek için doktor doğrulaması gerekli
+              </p>
+              <p className="mt-1 text-xs text-blue-800">
+                Doktor değerlendirmelerini ve çalışma deneyimlerini görmek için hekim doğrulamanız gerekir.
+              </p>
+            </div>
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
+                <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+                  <Clock className="size-5 text-muted-foreground" />
+                </div>
+                <p className="mx-auto max-w-sm text-sm text-muted-foreground">
+                  Değerlendirmeleri görmek için hekim doğrulamanın onaylanması
+                  gerekiyor.
+                </p>
+                <Button asChild variant="outline">
+                  <Link href="/profile">Doğrulama durumumu gör</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </>
         ) : (
           <VerifiedHospitalContent hospitalId={id} supabase={supabase} />
         )}
