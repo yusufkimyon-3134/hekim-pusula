@@ -38,6 +38,9 @@
   ],
   "exclude": [
     "node_modules",
-    "supabase/functions"
+    "supabase/functions",
+    "codex-backup-*",
+    "codex-build-backup-*",
+    "pratisyen-hekim-gorevi-v1"
   ]
 }

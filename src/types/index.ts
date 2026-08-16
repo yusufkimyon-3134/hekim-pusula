@@ -252,5 +252,6 @@ export interface SearchSuggestion {
   id: string;
   title: string;
   subtitle: string;
-  reviewCount: number;
+  /** null = bu bilgi çağıran için gösterilmiyor (doğrulanmamış kullanıcı) — "0" ile karıştırılmamalı. */
+  reviewCount: number | null;
 }

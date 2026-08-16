@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+﻿import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import type { ReviewInput, ReviewTopic, ReviewWithScores } from "@/types";
 import { classifyReviewTopics } from "@/lib/ai/adapters/keyword-topic-classifier";
@@ -10,36 +10,55 @@ type AuthorStatsRow = Database["public"]["Views"]["review_author_stats"]["Row"];
 type HelpfulCountRow = Database["public"]["Views"]["review_helpful_counts"]["Row"];
 
 /**
- * `reviews`/`review_scores`'a erişim katmanı. Okuma herkese açık (RLS'te
- * `status = 'approved' OR kendi review'un`); yazma, tüm iş kuralını
- * (workplace oluşturma + review + score, tek transaction'da) tek bir
+ * `reviews`/`review_scores`'a eriÅŸim katmanÄ±. Okuma herkese aÃ§Ä±k (RLS'te
+ * `status = 'approved' OR kendi review'un`); yazma, tÃ¼m iÅŸ kuralÄ±nÄ±
+ * (workplace oluÅŸturma + review + score, tek transaction'da) tek bir
  * Postgres fonksiyonuna (`submit_review`/`update_review`) delege ediyor.
  *
- * `review_author_stats` ve `review_helpful_counts` birer VIEW olduğu ve
- * `reviews` ile gerçek bir FK ilişkisi olmadığı için PostgREST'in
- * embedded-resource `select("*, foo(*)")` sözdizimiyle güvenilir şekilde
- * birleştirilemeyebilir (bu, önceki sprintlerde embedded-resource `or()`
- * filtrelemesinde yaşanan kırılganlıkla aynı sınıf sorun) — bu yüzden
- * ayrı sorgularla çekilip JS tarafında `review_id` üzerinden birleştiriliyor.
+ * `review_author_stats` ve `review_helpful_counts` birer VIEW olduÄŸu ve
+ * `reviews` ile gerÃ§ek bir FK iliÅŸkisi olmadÄ±ÄŸÄ± iÃ§in PostgREST'in
+ * embedded-resource `select("*, foo(*)")` sÃ¶zdizimiyle gÃ¼venilir ÅŸekilde
+ * birleÅŸtirilemeyebilir (bu, Ã¶nceki sprintlerde embedded-resource `or()`
+ * filtrelemesinde yaÅŸanan kÄ±rÄ±lganlÄ±kla aynÄ± sÄ±nÄ±f sorun) â€” bu yÃ¼zden
+ * ayrÄ± sorgularla Ã§ekilip JS tarafÄ±nda `review_id` Ã¼zerinden birleÅŸtiriliyor.
  */
 export class ReviewRepository {
   constructor(private readonly client: SupabaseClient<Database>) {}
 
-  async findByClinicId(clinicId: string): Promise<ReviewWithScores[]> {
-    const [reviewsRes, authUser] = await Promise.all([
-      this.client
-        .from("reviews")
-        .select("*, review_scores(*)")
-        .eq("clinic_id", clinicId)
-        .order("created_at", { ascending: false })
-        .returns<ReviewWithScoreRow[]>(),
-      this.client.auth.getUser(),
-    ]);
+  async findByClinicId(
+    clinicId: string,
+    options: { requireVerifiedUser?: boolean } = {}
+  ): Promise<ReviewWithScores[]> {
+    const { data: authUser } = await this.client.auth.getUser();
 
-    if (reviewsRes.error) {
-      throw new Error(`Değerlendirmeler getirilemedi: ${reviewsRes.error.message}`);
+    if (options.requireVerifiedUser && (!authUser.user || !authUser.user.id)) {
+      return [];
     }
-    const reviews = reviewsRes.data ?? [];
+
+    if (options.requireVerifiedUser) {
+      const { data: doctor, error: doctorError } = await this.client
+        .from("doctors")
+        .select("is_verified")
+        .eq("id", authUser.user!.id)
+        .maybeSingle();
+
+      if (doctorError || doctor?.is_verified !== true) {
+        return [];
+      }
+    }
+
+    const { data: reviewRows, error: reviewsError } = await this.client
+      .from("reviews")
+      .select("*, review_scores(*)")
+      .eq("clinic_id", clinicId)
+      .order("created_at", { ascending: false })
+      .returns<ReviewWithScoreRow[]>();
+
+    if (reviewsError) {
+      throw new Error(`Değerlendirmeler getirilemedi: ${reviewsError.message}`);
+    }
+
+    const reviews = reviewRows ?? [];
     if (reviews.length === 0) return [];
 
     const reviewIds = reviews.map((r) => r.id);
@@ -64,7 +83,7 @@ export class ReviewRepository {
     const helpfulCountByReview = new Map(
       (helpfulCountsRes.data ?? []).map((h) => [h.review_id, h.helpful_count])
     );
-    const myDoctorId = authUser.data.user?.id;
+    const myDoctorId = authUser.user?.id;
 
     return reviews
       .filter((r): r is ReviewWithScoreRow & { review_scores: ReviewScoreRow } =>
@@ -100,8 +119,8 @@ export class ReviewRepository {
   }
 
   /**
-   * Giriş yapmış kullanıcının, bu klinik için (varsa) kendi çalışma
-   * kaydı ID'leri — RLS zaten yalnızca kendi satırlarını döndürüyor.
+   * GiriÅŸ yapmÄ±ÅŸ kullanÄ±cÄ±nÄ±n, bu klinik iÃ§in (varsa) kendi Ã§alÄ±ÅŸma
+   * kaydÄ± ID'leri â€” RLS zaten yalnÄ±zca kendi satÄ±rlarÄ±nÄ± dÃ¶ndÃ¼rÃ¼yor.
    */
   private async myWorkplaceIdsForClinic(clinicId: string): Promise<Set<string>> {
     const { data, error } = await this.client
@@ -113,7 +132,7 @@ export class ReviewRepository {
     return new Set((data ?? []).map((row) => row.id));
   }
 
-  /** Giriş yapmış kullanıcının bu klinik için var olan review'ı (varsa) — "zaten değerlendirdin" yönlendirmesi için. */
+  /** GiriÅŸ yapmÄ±ÅŸ kullanÄ±cÄ±nÄ±n bu klinik iÃ§in var olan review'Ä± (varsa) â€” "zaten deÄŸerlendirdin" yÃ¶nlendirmesi iÃ§in. */
   async findOwnReviewIdForClinic(clinicId: string): Promise<string | null> {
     const workplaceIds = await this.myWorkplaceIdsForClinic(clinicId);
     if (workplaceIds.size === 0) return null;
@@ -130,8 +149,8 @@ export class ReviewRepository {
   }
 
   /**
-   * @throws kullanıcı giriş yapmamışsa, ya da bu klinik için zaten bir
-   * değerlendirmesi varsa (Postgres hata mesajı olduğu gibi yukarı taşınır).
+   * @throws kullanÄ±cÄ± giriÅŸ yapmamÄ±ÅŸsa, ya da bu klinik iÃ§in zaten bir
+   * deÄŸerlendirmesi varsa (Postgres hata mesajÄ± olduÄŸu gibi yukarÄ± taÅŸÄ±nÄ±r).
    */
   async create(input: ReviewInput): Promise<string> {
     const { data, error } = await this.client.rpc("submit_review", {
@@ -140,7 +159,7 @@ export class ReviewRepository {
       p_daily_patients: input.dailyPatients,
       p_service_patients: input.servicePatients,
       p_would_choose_again: input.wouldChooseAgain,
-      p_comment: input.comment ?? null,
+      p_comment: input.comment ?? "",
       p_incentive_score: input.incentiveScore,
       p_colleague_score: input.colleagueScore,
       p_management_score: input.managementScore,
@@ -157,7 +176,7 @@ export class ReviewRepository {
     return data;
   }
 
-  /** Kendi review'unu düzenler (reviews + review_scores tek transaction'da). */
+  /** Kendi review'unu dÃ¼zenler (reviews + review_scores tek transaction'da). */
   async update(reviewId: string, input: Omit<ReviewInput, "clinicId">): Promise<void> {
     const { error } = await this.client.rpc("update_review", {
       p_review_id: reviewId,
@@ -165,7 +184,7 @@ export class ReviewRepository {
       p_daily_patients: input.dailyPatients,
       p_service_patients: input.servicePatients,
       p_would_choose_again: input.wouldChooseAgain,
-      p_comment: input.comment ?? null,
+      p_comment: input.comment ?? "",
       p_incentive_score: input.incentiveScore,
       p_colleague_score: input.colleagueScore,
       p_management_score: input.managementScore,
@@ -182,13 +201,13 @@ export class ReviewRepository {
   }
 
   /**
-   * Yorum metnini anahtar kelime tabanlı sınıflandırıcıdan geçirir
-   * (bkz. `src/lib/ai/adapters/keyword-topic-classifier.ts` — LLM
-   * KULLANMAZ, deterministiktir) ve `review_topics`'i günceller. Önce
-   * eski etiketleri temizler (düzenlemede yorum değişmiş olabilir).
-   * Bu adımın başarısız olması review'ın kendisini geçersiz kılmamalı
-   * — bu yüzden hata sessizce yutuluyor (etiketleme "nice to have",
-   * review'ın var olması kritik).
+   * Yorum metnini anahtar kelime tabanlÄ± sÄ±nÄ±flandÄ±rÄ±cÄ±dan geÃ§irir
+   * (bkz. `src/lib/ai/adapters/keyword-topic-classifier.ts` â€” LLM
+   * KULLANMAZ, deterministiktir) ve `review_topics`'i gÃ¼nceller. Ã–nce
+   * eski etiketleri temizler (dÃ¼zenlemede yorum deÄŸiÅŸmiÅŸ olabilir).
+   * Bu adÄ±mÄ±n baÅŸarÄ±sÄ±z olmasÄ± review'Ä±n kendisini geÃ§ersiz kÄ±lmamalÄ±
+   * â€” bu yÃ¼zden hata sessizce yutuluyor (etiketleme "nice to have",
+   * review'Ä±n var olmasÄ± kritik).
    */
   private async reclassifyTopics(reviewId: string, comment: string | undefined): Promise<void> {
     try {
@@ -199,11 +218,11 @@ export class ReviewRepository {
         .from("review_topics")
         .insert(topics.map((topic) => ({ review_id: reviewId, topic })));
     } catch {
-      // Sessizce yut — bkz. yukarıdaki açıklama.
+      // Sessizce yut â€” bkz. yukarÄ±daki aÃ§Ä±klama.
     }
   }
 
-  /** Bir klinikteki onaylı yorumlarda hangi konunun kaç kez geçtiği (Sprint 8 içgörüleri için). */
+  /** Bir klinikteki onaylÄ± yorumlarda hangi konunun kaÃ§ kez geÃ§tiÄŸi (Sprint 8 iÃ§gÃ¶rÃ¼leri iÃ§in). */
   async getTopicCounts(clinicId: string): Promise<Partial<Record<ReviewTopic, number>>> {
     const { data: reviewRows, error: reviewsError } = await this.client
       .from("reviews")
@@ -229,11 +248,11 @@ export class ReviewRepository {
     return counts;
   }
 
-  /** Bir review'ı siler (RLS: yalnızca sahibi). review_scores cascade ile silinir. */
+  /** Bir review'Ä± siler (RLS: yalnÄ±zca sahibi). review_scores cascade ile silinir. */
   async delete(reviewId: string): Promise<void> {
     const { error } = await this.client.from("reviews").delete().eq("id", reviewId);
     if (error) {
-      throw new Error(`Değerlendirme silinemedi: ${error.message}`);
+      throw new Error(`DeÄŸerlendirme silinemedi: ${error.message}`);
     }
   }
 
@@ -260,9 +279,9 @@ export class ReviewRepository {
         .select("id")
         .eq("id", data.doctor_workplace_id)
         .maybeSingle();
-      // RLS zaten yalnızca auth.uid() == doctor_id olan satırları
-      // döndürüyor — bu yüzden bir satır bulunması, bu workplace'in
-      // (dolayısıyla review'ın) çağıran kullanıcıya ait olduğu anlamına gelir.
+      // RLS zaten yalnÄ±zca auth.uid() == doctor_id olan satÄ±rlarÄ±
+      // dÃ¶ndÃ¼rÃ¼yor â€” bu yÃ¼zden bir satÄ±r bulunmasÄ±, bu workplace'in
+      // (dolayÄ±sÄ±yla review'Ä±n) Ã§aÄŸÄ±ran kullanÄ±cÄ±ya ait olduÄŸu anlamÄ±na gelir.
       isMine = Boolean(workplace);
     }
 
@@ -293,7 +312,7 @@ export class ReviewRepository {
     };
   }
 
-  /** Bir review'ı "faydalı" olarak işaretler. Aynı kullanıcı iki kez oy veremez (bileşik PK). */
+  /** Bir review'Ä± "faydalÄ±" olarak iÅŸaretler. AynÄ± kullanÄ±cÄ± iki kez oy veremez (bileÅŸik PK). */
   async voteHelpful(reviewId: string, doctorId: string): Promise<void> {
     const { error } = await this.client
       .from("review_helpful_votes")
@@ -314,3 +333,4 @@ export class ReviewRepository {
     return Boolean(data);
   }
 }
+
