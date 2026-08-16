@@ -17,7 +17,7 @@ function toHospital(row: HospitalRow | SearchHospitalsRow): Hospital {
 }
 
 function toCityCount(row: CityCountRow): CityCount {
-  return { city: row.city, hospitalCount: row.hospital_count };
+  return { city: row.city ?? "", hospitalCount: row.hospital_count ?? 0 };
 }
 
 /**
