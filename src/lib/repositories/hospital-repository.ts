@@ -38,9 +38,9 @@ export class HospitalRepository {
    */
   async search(params: HospitalSearchParams = {}): Promise<Hospital[]> {
     const { data, error } = await this.client.rpc("search_hospitals", {
-      search_query: params.query ?? null,
-      filter_city: params.city ?? null,
-      filter_hospital_type: params.hospitalType ?? null,
+      search_query: params.query ?? undefined,
+      filter_city: params.city ?? undefined,
+      filter_hospital_type: params.hospitalType ?? undefined,
     });
 
     if (error) {

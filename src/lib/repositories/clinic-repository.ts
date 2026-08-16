@@ -161,13 +161,13 @@ export class ClinicRepository {
    */
   async search(params: HospitalSearchParams = {}): Promise<ClinicSearchResult[]> {
     const { data, error } = await this.client.rpc("search_clinics", {
-      search_query: params.query ?? null,
-      filter_city: params.city ?? null,
-      filter_hospital_type: params.hospitalType ?? null,
-      filter_min_overall: params.minOverall ?? null,
-      filter_min_education: params.minEducation ?? null,
-      filter_min_academic: params.minAcademic ?? null,
-      filter_max_monthly_shifts: params.maxMonthlyShifts ?? null,
+      search_query: params.query ?? undefined,
+      filter_city: params.city ?? undefined,
+      filter_hospital_type: params.hospitalType ?? undefined,
+      filter_min_overall: params.minOverall ?? undefined,
+      filter_min_education: params.minEducation ?? undefined,
+      filter_min_academic: params.minAcademic ?? undefined,
+      filter_max_monthly_shifts: params.maxMonthlyShifts ?? undefined,
     });
 
     if (error) {
