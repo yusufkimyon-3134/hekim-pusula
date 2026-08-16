@@ -38,7 +38,7 @@ export async function SiteHeader() {
               <form action={logout}>
                 <button
                   type="submit"
-                  className="opacity-90 transition-opacity hover:opacity-100"
+                  className="cursor-pointer opacity-90 transition-opacity hover:opacity-100"
                 >
                   Çıkış yap
                 </button>
@@ -65,3 +65,4 @@ export async function SiteHeader() {
     </header>
   );
 }
+
