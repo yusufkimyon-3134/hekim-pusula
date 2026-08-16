@@ -89,4 +89,3 @@ export function getEnvOrPlaceholder(): Env {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: PLACEHOLDER_SUPABASE_ANON_KEY,
   };
 }
-// Vercel rebuild trigger 2026-08-16 13:31:28
