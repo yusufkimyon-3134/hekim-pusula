@@ -98,6 +98,35 @@ export default async function SearchPage({
     clinicRepository.search(clinicSearchArgs),
   ]);
 
+  // Doğrulanmış hekimler için her klinik'in stats'ını fetch et
+  let clinicStatsMap: Record<string, { reviewCount: number; avgScore: number | null }> = {};
+  if (isVerified && clinics.length > 0) {
+    const statsPromises = clinics.map((clinic) =>
+      clinicRepository
+        .getStats(clinic.clinicId)
+        .then((stats) => ({
+          clinicId: clinic.clinicId,
+          stats,
+        }))
+        .catch(() => ({
+          clinicId: clinic.clinicId,
+          stats: null,
+        }))
+    );
+    const statsResults = await Promise.all(statsPromises);
+    clinicStatsMap = Object.fromEntries(
+      statsResults
+        .filter((r) => r.stats)
+        .map((r) => [
+          r.clinicId,
+          {
+            reviewCount: r.stats?.reviewCount ?? 0,
+            avgScore: r.stats?.avgOverallScore ?? null,
+          },
+        ])
+    );
+  }
+
   const hasAnyFilter = Boolean(q || city || hospitalType || hasAdvancedFilters);
   const totalResults = hospitals.length + clinics.length;
 
@@ -230,7 +259,11 @@ export default async function SearchPage({
           <SectionLabel>Hastaneler ({hospitals.length})</SectionLabel>
           <div className="mt-3 space-y-3">
             {hospitals.map((hospital) => (
-              <HospitalCard key={hospital.id} hospital={hospital}  />
+              <HospitalCard
+                key={hospital.id}
+                hospital={hospital}
+                isVerified={isVerified}
+              />
             ))}
           </div>
         </div>
@@ -240,15 +273,20 @@ export default async function SearchPage({
         <div className="mt-8">
           <SectionLabel>Klinikler ({clinics.length})</SectionLabel>
           <div className="mt-3 space-y-3">
-            {clinics.map((clinic) => (
-              <ClinicCard
-                key={clinic.clinicId}
-                branch={clinic.branch}
-                href={`/clinic/${clinic.clinicId}`}
-                subtitle={`${clinic.hospitalName} — ${clinic.hospitalDistrict}, ${clinic.hospitalCity}`}
-                
-              />
-            ))}
+            {clinics.map((clinic) => {
+              const stats = clinicStatsMap[clinic.clinicId];
+              return (
+                <ClinicCard
+                  key={clinic.clinicId}
+                  branch={clinic.branch}
+                  href={`/clinic/${clinic.clinicId}`}
+                  subtitle={`${clinic.hospitalName} — ${clinic.hospitalDistrict}, ${clinic.hospitalCity}`}
+                  reviewCount={stats?.reviewCount}
+                  avgScore={stats?.avgScore}
+                  isVerified={isVerified}
+                />
+              );
+            })}
           </div>
         </div>
       )}
