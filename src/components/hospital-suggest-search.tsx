@@ -1,15 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { SearchSuggestion } from "@/types";
+import { findPublicHospitalMatches } from "@/data/public-hospital-catalog";
 
 const MIN_QUERY_LENGTH = 2;
-const DEBOUNCE_MS = 300;
+const DEBOUNCE_MS = 180;
 
 type SuggestionWithHref = SearchSuggestion & { href: string };
+type ReviewAccess = "verified" | "anonymous" | "unverified";
 
 function formatReviewCount(count: number): string {
   return count > 0 ? `${count} değerlendirme` : "Henüz değerlendirme yok";
@@ -63,6 +66,7 @@ export function HospitalSuggestSearch({
   const [suggestions, setSuggestions] = useState<SuggestionWithHref[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [reviewAccess, setReviewAccess] = useState<ReviewAccess>("anonymous");
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -74,6 +78,21 @@ export function HospitalSuggestSearch({
       return;
     }
 
+    // Kurum adlarini ağa bagli olmadan ANINDA göster. Bu katalogda sadece
+    // public kurum adi/konum vardir; yorum veya puan verisi bulunmaz.
+    const localMatches: SuggestionWithHref[] = findPublicHospitalMatches(query).map((item, index) => ({
+      type: "hospital",
+      id: `local-${index}-${item.name}`,
+      title: item.name,
+      subtitle: `${item.district}, ${item.city}`,
+      reviewCount: null,
+      href: item.href ?? `/search?q=${encodeURIComponent(item.name)}`,
+    }));
+    setSuggestions(localMatches);
+    setReviewAccess("anonymous");
+    setIsOpen(localMatches.length > 0);
+    setHighlightedIndex(-1);
+
     debounceRef.current = setTimeout(() => {
       abortControllerRef.current?.abort();
       const controller = new AbortController();
@@ -82,9 +101,19 @@ export function HospitalSuggestSearch({
       fetch(`/api/search-suggestions?q=${encodeURIComponent(query)}`, {
         signal: controller.signal,
       })
-        .then((res) => res.json())
-        .then((data: { suggestions: SuggestionWithHref[] }) => {
-          setSuggestions(data.suggestions ?? []);
+        .then((res) => {
+          if (!res.ok) throw new Error(`Arama istegi basarisiz: ${res.status}`);
+          return res.json();
+        })
+        .then((data: { suggestions: SuggestionWithHref[]; reviewAccess?: ReviewAccess }) => {
+          // Canli API sonuc verirse onu kullan. Bos donerse yerel public katalog
+          // ekranda kalmaya devam etsin; böylece .env/Supabase sorunu typeahead'i
+          // tamamen kullanilamaz hale getiremez.
+          if ((data.suggestions ?? []).length > 0) {
+            setSuggestions(data.suggestions);
+          }
+          setReviewAccess(data.reviewAccess ?? "anonymous");
+          setIsOpen(true);
           setHighlightedIndex(-1);
         })
         .catch((err) => {
@@ -187,6 +216,14 @@ export function HospitalSuggestSearch({
                 <span className="text-xs text-muted-foreground">
                   {formatSubtitle(s.subtitle, s.reviewCount)}
                 </span>
+                {reviewAccess !== "verified" && (
+                  <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-amber-700">
+                    <Lock className="size-3" aria-hidden="true" />
+                    {reviewAccess === "anonymous"
+                      ? "Değerlendirmeleri görmek için giriş yap veya kayıt ol"
+                      : "Değerlendirmeleri görmek için hekim doğrulaması gerekli"}
+                  </span>
+                )}
               </button>
             </li>
           ))}
