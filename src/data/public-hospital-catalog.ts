@@ -50,6 +50,15 @@ export const PUBLIC_HOSPITAL_CATALOG: PublicHospitalCatalogItem[] = [
   { name: "Reyhanlı Devlet Hastanesi", city: "Hatay", district: "Reyhanlı" },
   { name: "Samandağ Devlet Hastanesi", city: "Hatay", district: "Samandağ" },
   { name: "Yayladağı Devlet Hastanesi", city: "Hatay", district: "Yayladağı" },
+
+  { name: "Şırnak Devlet Hastanesi", city: "Şırnak", district: "Merkez" },
+  { name: "Şırnak Şehit Aydoğan Aydın Devlet Hastanesi", city: "Şırnak", district: "Merkez" },
+  { name: "Cizre Dr. Selahattin Cizrelioğlu Devlet Hastanesi", city: "Şırnak", district: "Cizre" },
+  { name: "Silopi Devlet Hastanesi", city: "Şırnak", district: "Silopi" },
+  { name: "İdil Devlet Hastanesi", city: "Şırnak", district: "İdil" },
+  { name: "Uludere Devlet Hastanesi", city: "Şırnak", district: "Uludere" },
+  { name: "Beytüşşebap Devlet Hastanesi", city: "Şırnak", district: "Beytüşşebap" },
+  { name: "Güçlükonak Entegre İlçe Devlet Hastanesi", city: "Şırnak", district: "Güçlükonak" },
 ];
 
 const trLower = (value: string) => value.toLocaleLowerCase("tr-TR");
