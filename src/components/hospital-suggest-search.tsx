@@ -18,6 +18,26 @@ function formatReviewCount(count: number): string {
   return count > 0 ? `${count} değerlendirme` : "Henüz değerlendirme yok";
 }
 
+function dedupeSuggestions(items: SuggestionWithHref[]): SuggestionWithHref[] {
+  const seen = new Map<string, SuggestionWithHref>();
+
+  for (const item of items) {
+    const key = [item.type, item.title.trim(), item.subtitle.trim()]
+      .join("|")
+      .toLocaleLowerCase("tr-TR");
+
+    const existing = seen.get(key);
+
+    // Aynı kurum iki kaynaktan gelirse canlı/API kaydındaki gerçek href ve
+    // değerlendirme sayısını koru; aksi halde ilk kaydı bırak.
+    if (!existing || (existing.reviewCount === null && item.reviewCount !== null)) {
+      seen.set(key, item);
+    }
+  }
+
+  return Array.from(seen.values());
+}
+
 /**
  * `reviewCount` null ise (giriş yapmamış/doğrulanmamış kullanıcı —
  * bkz. `search_suggestions` SQL fonksiyonu) alt satıra HİÇ değerlendirme
@@ -88,7 +108,7 @@ export function HospitalSuggestSearch({
       reviewCount: null,
       href: item.href ?? `/search?q=${encodeURIComponent(item.name)}`,
     }));
-    setSuggestions(localMatches);
+    setSuggestions(dedupeSuggestions(localMatches));
     setReviewAccess("anonymous");
     setIsOpen(localMatches.length > 0);
     setHighlightedIndex(-1);
@@ -110,7 +130,7 @@ export function HospitalSuggestSearch({
           // ekranda kalmaya devam etsin; böylece .env/Supabase sorunu typeahead'i
           // tamamen kullanilamaz hale getiremez.
           if ((data.suggestions ?? []).length > 0) {
-            setSuggestions(data.suggestions);
+            setSuggestions(dedupeSuggestions(data.suggestions));
           }
           setReviewAccess(data.reviewAccess ?? "anonymous");
           setIsOpen(true);
