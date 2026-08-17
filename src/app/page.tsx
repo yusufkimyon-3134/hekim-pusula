@@ -52,13 +52,13 @@ export default async function HomePage() {
     <>
       {/* Hero */}
       <section className="bg-primary text-primary-foreground">
-        <Container className="flex min-h-[calc(100svh-5rem)] flex-col items-center justify-center gap-7 py-16 text-center sm:gap-8 sm:py-20">
-          <LogoMark className="h-16 w-16 text-[color:var(--color-ring)] sm:h-20 sm:w-20" />
-          <div className="space-y-4">
-            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+        <Container className="flex flex-col items-center gap-6 py-20 text-center sm:py-28">
+          <LogoMark className="h-14 w-14 text-[color:var(--color-ring)] sm:h-16 sm:w-16" />
+          <div className="space-y-3">
+            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
               Hekim Pusula
             </h1>
-            <p className="mx-auto max-w-xl text-base leading-7 text-primary-foreground/80 sm:text-lg">
+            <p className="mx-auto max-w-md text-sm text-primary-foreground/80 sm:text-base">
               Kura veya atama öncesi, doğru kurumu gerçek hekim deneyimleriyle
               keşfet.
             </p>
@@ -66,19 +66,15 @@ export default async function HomePage() {
 
           <form
             action="/search"
-            className="mx-auto flex w-full max-w-2xl items-stretch justify-center"
+            className="mx-auto flex w-full max-w-xl flex-col gap-2 sm:flex-row sm:items-start sm:justify-center"
           >
             <HospitalSuggestSearch
               name="q"
               placeholder="Hastane veya branş adı yaz"
               ariaLabel="Kurum veya klinik ara"
-              className="min-w-0 flex-1 [&_input]:rounded-r-none [&_input]:border-r-0"
+              className="sm:flex-1"
             />
-            <Button
-              type="submit"
-              size="lg"
-              className="h-11 w-24 shrink-0 rounded-l-none border border-primary-foreground/15 bg-primary px-0 text-primary-foreground shadow-none hover:bg-primary/80 sm:w-28"
-            >
+            <Button type="submit" size="lg" className="h-11 sm:w-auto">
               Ara
             </Button>
           </form>
