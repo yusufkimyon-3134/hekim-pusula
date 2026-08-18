@@ -9,9 +9,9 @@ import { login } from "./actions";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; redirectTo?: string }>;
+  searchParams: Promise<{ error?: string; redirectTo?: string; passwordReset?: string }>;
 }) {
-  const { error, redirectTo } = await searchParams;
+  const { error, redirectTo, passwordReset } = await searchParams;
 
   return (
     <Container className="flex justify-center py-16">
@@ -26,6 +26,12 @@ export default async function LoginPage({
           <form action={login} className="space-y-4">
             <input type="hidden" name="redirectTo" value={redirectTo ?? ""} />
 
+            {passwordReset === "1" && (
+              <p className="rounded-md bg-accent px-3 py-2 text-sm text-accent-foreground">
+                Şifren başarıyla yenilendi. Yeni şifrenle giriş yapabilirsin.
+              </p>
+            )}
+
             {error && (
               <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {error}
@@ -39,7 +45,12 @@ export default async function LoginPage({
 
             <div className="space-y-1.5">
               <Label htmlFor="password">Şifre</Label>
-              <Input id="password" name="password" type="password" required />
+              <Input id="password" name="password" type="password" autoComplete="current-password" required />
+              <div className="flex justify-end">
+                <Link href="/forgot-password" className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
+                  Şifremi unuttum
+                </Link>
+              </div>
             </div>
 
             <Button type="submit" className="w-full">

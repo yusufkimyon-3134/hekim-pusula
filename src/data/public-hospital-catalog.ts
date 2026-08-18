@@ -59,6 +59,11 @@ export const PUBLIC_HOSPITAL_CATALOG: PublicHospitalCatalogItem[] = [
   { name: "Uludere Devlet Hastanesi", city: "Şırnak", district: "Uludere" },
   { name: "Beytüşşebap Devlet Hastanesi", city: "Şırnak", district: "Beytüşşebap" },
   { name: "Güçlükonak Entegre İlçe Devlet Hastanesi", city: "Şırnak", district: "Güçlükonak" },
+  { name: "Hakkâri Devlet Hastanesi", city: "Hakkâri", district: "Merkez" },
+  { name: "Yüksekova Devlet Hastanesi", city: "Hakkâri", district: "Yüksekova" },
+  { name: "Çukurca Devlet Hastanesi", city: "Hakkâri", district: "Çukurca" },
+  { name: "Şemdinli Devlet Hastanesi", city: "Hakkâri", district: "Şemdinli" },
+  { name: "Derecik Devlet Hastanesi", city: "Hakkâri", district: "Derecik" },
 ];
 
 const trLower = (value: string) => value.toLocaleLowerCase("tr-TR");

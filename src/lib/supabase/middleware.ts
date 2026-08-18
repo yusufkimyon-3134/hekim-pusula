@@ -26,7 +26,7 @@ let warnedOnce = false;
  */
 type AccessTier = "public" | "authenticated" | "verified";
 
-const PUBLIC_EXACT_PATHS = ["/", "/login", "/register"];
+const PUBLIC_EXACT_PATHS = ["/", "/login", "/register", "/forgot-password", "/reset-password"];
 const PUBLIC_PREFIXES = [
   "/auth/callback",
   "/kvkk-aydinlatma",
@@ -38,6 +38,9 @@ const PUBLIC_PREFIXES = [
   // ol" bilgi kartını GÖRMELİ — bu yüzden middleware burada artık
   // engellemiyor.
   "/hospital",
+  // Ana sayfadaki canlı hastane/klinik önerileri ziyaretçilere de açık olmalı.
+  // Yorum içeriği bu route üzerinden dönmez; yalnızca keşif verisi döner.
+  "/api/search-suggestions",
 ];
 const AUTHENTICATED_PREFIXES = ["/profile"];
 
