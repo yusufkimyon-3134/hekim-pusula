@@ -7,6 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { createClient } from "@/lib/supabase/server";
 import { sendThreadMessage, setContactConsent } from "./actions";
 
+type ThreadMessage = {
+  id: string;
+  sender_doctor_id: string;
+  body: string;
+  created_at: string;
+};
+
 function formatTime(iso: string) {
   return new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 }
@@ -31,7 +38,13 @@ export default async function QuestionThreadPage({ params, searchParams }: { par
     }
   }
 
-  const { data: messages } = await supabase.from("review_question_messages").select("id, sender_doctor_id, body, created_at").eq("question_id", questionId).order("created_at", { ascending: true });
+  const { data: rawMessages } = await (supabase as any)
+    .from("review_question_messages")
+    .select("id, sender_doctor_id, body, created_at")
+    .eq("question_id", questionId)
+    .order("created_at", { ascending: true });
+  const messages = (rawMessages ?? []) as ThreadMessage[];
+
   const isAsker = auth.user.id === question.asker_doctor_id;
   const myConsent = isAsker ? question.asker_contact_consent : question.author_contact_consent;
   const otherConsent = isAsker ? question.author_contact_consent : question.asker_contact_consent;
@@ -40,7 +53,7 @@ export default async function QuestionThreadPage({ params, searchParams }: { par
   const timeline = [
     { id: "question", mine: isAsker, body: question.question, label: "İlk soru", createdAt: question.created_at },
     ...(question.answer ? [{ id: "answer", mine: !isAsker, body: question.answer, label: "İlk yanıt", createdAt: question.answered_at ?? question.created_at }] : []),
-    ...(messages ?? []).map((message) => ({ id: message.id, mine: message.sender_doctor_id === auth.user.id, body: message.body, label: null, createdAt: message.created_at })),
+    ...messages.map((message) => ({ id: message.id, mine: message.sender_doctor_id === auth.user.id, body: message.body, label: null, createdAt: message.created_at })),
   ];
 
   return <Container className="py-10 sm:py-14"><main className="mx-auto max-w-2xl space-y-5">
