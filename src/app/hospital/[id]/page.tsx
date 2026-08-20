@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Lock, LogIn, UserPlus, Clock } from "lucide-react";
@@ -13,10 +14,43 @@ import { ClinicRepository } from "@/lib/repositories/clinic-repository";
 import { DoctorRepository } from "@/lib/repositories/doctor-repository";
 import { HOSPITAL_TYPE_LABELS } from "@/lib/hospital-type";
 
-// Hastane referans verisi (ad/il/ilçe/tür) nadiren değişir — 1 saatlik ISR.
-// Not: bu artık yalnızca hastane bilgisi için geçerli; klinik/yorum
-// içeriği zaten yalnızca doğrulanmış hekimler için, dinamik olarak
-// (auth durumuna göre) gösteriliyor.
+const siteUrl = "https://www.hekimpusula.com.tr";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const hospital = await new HospitalRepository(supabase).findById(id);
+
+  if (!hospital) {
+    return {
+      title: "Hastane bulunamadı",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const title = `${hospital.name} Yorumları ve Çalışma Koşulları`;
+  const description = `${hospital.name} (${hospital.district}, ${hospital.city}) için hekim deneyimleri, klinikler, çalışma koşulları, nöbet düzeni ve TUS, YDUS, DHY tercihleri öncesi kurum bilgileri.`;
+  const canonical = `${siteUrl}/hospital/${id}`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      type: "website",
+      url: canonical,
+      title: `${title} | Hekim Pusula`,
+      description,
+      siteName: "Hekim Pusula",
+      locale: "tr_TR",
+    },
+  };
+}
+
 export const revalidate = 3600;
 
 export default async function HospitalDetailPage({
@@ -34,13 +68,19 @@ export default async function HospitalDetailPage({
     notFound();
   }
 
-  // Hastane adı/il/ilçe/tür herkese açık (bkz. migration
-  // 20260101000028) — bu yüzden yukarıdaki sorgu auth durumundan
-  // bağımsız çalışır. Klinik/yorum içeriği ise RLS'te hâlâ yalnızca
-  // doğrulanmış hekimlere açık; burada o içeriği HİÇ SORGULAMADAN önce
-  // auth/doğrulama durumunu kontrol ediyoruz — hem gereksiz bir sorgu
-  // atmamak hem de "boş liste" ile "erişimin yok" durumunu birbirine
-  // karıştırmamak için.
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Hospital",
+    name: hospital.name,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: hospital.district,
+      addressRegion: hospital.city,
+      addressCountry: "TR",
+    },
+    url: `${siteUrl}/hospital/${id}`,
+  };
+
   const { data: userData } = await supabase.auth.getUser();
 
   let isVerified = false;
@@ -52,6 +92,11 @@ export default async function HospitalDetailPage({
 
   return (
     <Container className="py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }}
+      />
+
       <DetailPageHeader
         title={hospital.name}
         subtitle={`${hospital.district}, ${hospital.city}`}
@@ -113,8 +158,7 @@ export default async function HospitalDetailPage({
                   <Clock className="size-5 text-muted-foreground" />
                 </div>
                 <p className="mx-auto max-w-sm text-sm text-muted-foreground">
-                  Değerlendirmeleri görmek için hekim doğrulamanın onaylanması
-                  gerekiyor.
+                  Değerlendirmeleri görmek için hekim doğrulamanın onaylanması gerekiyor.
                 </p>
                 <Button asChild variant="outline">
                   <Link href="/profile">Doğrulama durumumu gör</Link>
