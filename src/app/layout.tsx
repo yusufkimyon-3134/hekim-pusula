@@ -5,9 +5,29 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 
 export const metadata: Metadata = {
-  title: "Hekim Pusula",
+  metadataBase: new URL("https://hekimpusula.com.tr"),
+  title: {
+    default: "Hekim Pusula | Doktorlar İçin Hastane ve Klinik Deneyimleri",
+    template: "%s | Hekim Pusula",
+  },
   description:
-    "Kura ve atama öncesi hekimlerin kurum deneyimi paylaştığı platform.",
+    "Hekimlerin hastane ve klinik deneyimlerini keşfedin. TUS, YDUS ve DHY tercihleri öncesinde kurumlar, branşlar, nöbet düzeni ve çalışma koşulları hakkında hekim deneyimlerine ulaşın.",
+  applicationName: "Hekim Pusula",
+  alternates: { canonical: "/" },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
+  openGraph: {
+    type: "website",
+    locale: "tr_TR",
+    url: "https://hekimpusula.com.tr",
+    siteName: "Hekim Pusula",
+    title: "Hekim Pusula | Doktorlar İçin Hastane ve Klinik Deneyimleri",
+    description:
+      "TUS, YDUS ve DHY tercihleri öncesinde hastane ve klinikler hakkında gerçek hekim deneyimlerini keşfedin.",
+  },
 };
 
 export default function RootLayout({
