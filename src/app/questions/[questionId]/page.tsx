@@ -15,6 +15,19 @@ type ThreadMessage = {
   created_at: string;
 };
 
+type ReviewQuestionThread = {
+  id: string;
+  review_id: string;
+  asker_doctor_id: string;
+  author_doctor_id: string;
+  question: string;
+  answer: string | null;
+  created_at: string;
+  answered_at: string | null;
+  asker_contact_consent: boolean;
+  author_contact_consent: boolean;
+};
+
 function formatTime(iso: string) {
   return new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 }
@@ -26,7 +39,12 @@ export default async function QuestionThreadPage({ params, searchParams }: { par
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) redirect(`/login?redirectTo=${encodeURIComponent(`/questions/${questionId}`)}`);
 
-  const { data: question } = await supabase.from("review_questions").select("*").eq("id", questionId).maybeSingle();
+  const { data: rawQuestion } = await (supabase as any)
+    .from("review_questions")
+    .select("id, review_id, asker_doctor_id, author_doctor_id, question, answer, created_at, answered_at, asker_contact_consent, author_contact_consent")
+    .eq("id", questionId)
+    .maybeSingle();
+  const question = rawQuestion as ReviewQuestionThread | null;
   if (!question || ![question.asker_doctor_id, question.author_doctor_id].includes(auth.user.id)) notFound();
 
   const { data: review } = await supabase.from("reviews").select("clinic_id").eq("id", question.review_id).maybeSingle();
