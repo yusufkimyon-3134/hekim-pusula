@@ -14,6 +14,9 @@ export const metadata: Metadata = {
     "Hekimlerin hastane ve klinik deneyimlerini keşfedin. TUS, YDUS ve DHY tercihleri öncesinde kurumlar, branşlar, nöbet düzeni ve çalışma koşulları hakkında hekim deneyimlerine ulaşın.",
   applicationName: "Hekim Pusula",
   alternates: { canonical: "/" },
+  verification: {
+    google: "aDKJk3oLTyzFNqf9xo3h5MxCEYiZT1k6MNA5Kmi0QC4",
+  },
   robots: {
     index: true,
     follow: true,
