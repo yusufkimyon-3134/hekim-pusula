@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Link from "next/link";
 import { ArrowLeft, LockKeyhole, MessageCircle, ShieldCheck } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
