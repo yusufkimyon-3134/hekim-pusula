@@ -4,32 +4,57 @@ import { Providers } from "./providers";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 
+const siteUrl = "https://www.hekimpusula.com.tr";
+const siteTitle = "Hekim Pusula | TUS, YDUS ve DHY İçin Hastane Deneyimleri";
+const siteDescription =
+  "TUS, YDUS ve DHY tercihleri öncesinde hastane ve klinikleri hekim deneyimleriyle keşfedin. Nöbet düzeni, çalışma koşulları, eğitim ve kurum ortamı hakkında bilgi edinin.";
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://hekimpusula.com.tr"),
+  metadataBase: new URL(siteUrl),
   title: {
-    default: "Hekim Pusula | Doktorlar İçin Hastane ve Klinik Deneyimleri",
+    default: siteTitle,
     template: "%s | Hekim Pusula",
   },
-  description:
-    "Hekimlerin hastane ve klinik deneyimlerini keşfedin. TUS, YDUS ve DHY tercihleri öncesinde kurumlar, branşlar, nöbet düzeni ve çalışma koşulları hakkında hekim deneyimlerine ulaşın.",
+  description: siteDescription,
   applicationName: "Hekim Pusula",
-  alternates: { canonical: "/" },
+  category: "healthcare",
+  keywords: [
+    "Hekim Pusula",
+    "TUS tercih",
+    "YDUS tercih",
+    "DHY tercih",
+    "doktor hastane yorumları",
+    "hastane çalışma koşulları",
+    "hekim deneyimleri",
+    "mecburi hizmet hastane yorumları",
+    "asistanlık hastane yorumları",
+  ],
   verification: {
     google: "aDKJk3oLTyzFNqf9xo3h5MxCEYiZT1k6MNA5Kmi0QC4",
   },
   robots: {
     index: true,
     follow: true,
-    googleBot: { index: true, follow: true },
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
   openGraph: {
     type: "website",
     locale: "tr_TR",
-    url: "https://hekimpusula.com.tr",
+    url: siteUrl,
     siteName: "Hekim Pusula",
-    title: "Hekim Pusula | Doktorlar İçin Hastane ve Klinik Deneyimleri",
-    description:
-      "TUS, YDUS ve DHY tercihleri öncesinde hastane ve klinikler hakkında gerçek hekim deneyimlerini keşfedin.",
+    title: siteTitle,
+    description: siteDescription,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteTitle,
+    description: siteDescription,
   },
 };
 
