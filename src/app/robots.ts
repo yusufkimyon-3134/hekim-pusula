@@ -1,13 +1,21 @@
 import type { MetadataRoute } from "next";
 
+const siteUrl = "https://www.hekimpusula.com.tr";
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/profile", "/questions/", "/reset-password", "/forgot-password"],
+      disallow: [
+        "/api/",
+        "/profile",
+        "/questions/",
+        "/reset-password",
+        "/forgot-password",
+      ],
     },
-    sitemap: "https://hekimpusula.com.tr/sitemap.xml",
-    host: "https://hekimpusula.com.tr",
+    sitemap: `${siteUrl}/sitemap.xml`,
+    host: siteUrl,
   };
 }
