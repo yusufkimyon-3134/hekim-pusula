@@ -5,14 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { register } from "./actions";
+import { register, resendActivation } from "./actions";
 
 export default async function RegisterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; checkEmail?: string }>;
+  searchParams: Promise<{ error?: string; checkEmail?: string; resent?: string }>;
 }) {
-  const { error, checkEmail } = await searchParams;
+  const { error, checkEmail, resent } = await searchParams;
 
   if (checkEmail === "1") {
     return (
@@ -29,7 +29,34 @@ export default async function RegisterPage({
                 açmak için e-postandaki bağlantıya tıkla.
               </p>
             </div>
-            <Button asChild variant="outline" className="mt-2 w-full">
+
+            {resent === "1" && (
+              <p className="w-full rounded-md bg-accent px-3 py-2 text-sm text-accent-foreground">
+                Aktivasyon e-postası yeniden gönderildi. Gelen kutusu ve spam klasörünü kontrol et.
+              </p>
+            )}
+
+            {error && (
+              <p className="w-full rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {error}
+              </p>
+            )}
+
+            <form action={resendActivation} className="w-full space-y-2 text-left">
+              <Label htmlFor="resend-email">E-posta</Label>
+              <Input
+                id="resend-email"
+                name="email"
+                type="email"
+                placeholder="ornek@eposta.com"
+                required
+              />
+              <Button type="submit" variant="secondary" className="w-full">
+                Aktivasyon e-postasını yeniden gönder
+              </Button>
+            </form>
+
+            <Button asChild variant="outline" className="w-full">
               <Link href="/login">Giriş sayfasına dön</Link>
             </Button>
           </CardContent>
