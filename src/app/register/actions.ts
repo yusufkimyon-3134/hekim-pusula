@@ -5,10 +5,26 @@ import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { registerSchema } from "@/lib/validations/auth";
 
+function getFriendlyAuthError(message: string) {
+  const normalized = message.toLowerCase();
+
+  if (
+    normalized.includes("security purposes") ||
+    normalized.includes("after") && normalized.includes("seconds") ||
+    normalized.includes("rate limit") ||
+    normalized.includes("too many requests")
+  ) {
+    return "Çok kısa sürede birden fazla istek gönderildi. Lütfen yaklaşık 1 dakika bekleyip tekrar deneyin.";
+  }
+
+  if (normalized.includes("already registered") || normalized.includes("already been registered")) {
+    return "Bu e-posta adresiyle zaten bir hesap bulunuyor. Giriş yapmayı deneyin.";
+  }
+
+  return "Kayıt işlemi tamamlanamadı. Lütfen kısa bir süre sonra tekrar deneyin.";
+}
+
 export async function register(formData: FormData) {
-  // Sunucu tarafı zorunluluk: `required` HTML özniteliği yalnızca
-  // istemci tarafı bir kolaylık — JS kapalıyken veya form doğrudan
-  // gönderildiğinde atlanabilir. Asıl kural burada uygulanıyor.
   const acceptedKvkk = formData.get("acceptKvkk") === "on";
   const acceptedTerms = formData.get("acceptTerms") === "on";
 
@@ -29,9 +45,6 @@ export async function register(formData: FormData) {
     redirect(`/register?error=${encodeURIComponent(parsed.error.issues[0].message)}`);
   }
 
-  // Aktivasyon e-postasındaki bağlantının hangi origin'e döneceğini
-  // (dev/prod fark etmeksizin, yeni bir env değişkeni gerektirmeden)
-  // gelen isteğin kendi host başlığından türetiyoruz.
   const headersList = await headers();
   const host = headersList.get("host");
   const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
@@ -46,11 +59,8 @@ export async function register(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/register?error=${encodeURIComponent(error.message)}`);
+    redirect(`/register?error=${encodeURIComponent(getFriendlyAuthError(error.message))}`);
   }
 
-  // E-posta aktivasyonu tamamlanana kadar aktif bir oturum olmayacağı
-  // için artık /profile'a değil, "e-postanı kontrol et" ekranına
-  // yönlendiriyoruz (bkz. register/page.tsx, checkEmail=1).
   redirect("/register?checkEmail=1");
 }
