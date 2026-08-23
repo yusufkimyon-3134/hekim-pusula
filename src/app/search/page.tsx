@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { SearchX, Lock, Clock } from "lucide-react";
+import { SearchX } from "lucide-react";
 import { Container } from "@/components/layout/container";
 import { SectionLabel } from "@/components/section-label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { HospitalRepository } from "@/lib/repositories/hospital-repository";
 import { ClinicRepository } from "@/lib/repositories/clinic-repository";
