@@ -1,10 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import type { VerificationDocumentType, VerificationRequest } from "@/types";
+import { VERIFICATION_DOCUMENT_STORAGE_BUCKET } from "@/lib/verification-document";
 
 type VerificationRequestRow = Database["public"]["Tables"]["doctor_verification_requests"]["Row"];
-
-const STORAGE_BUCKET = "doctor-verification-documents";
 
 function toVerificationRequest(row: VerificationRequestRow): VerificationRequest {
   return {
@@ -43,23 +42,25 @@ export class DoctorVerificationRepository {
     return data ? toVerificationRequest(data) : null;
   }
 
-  /**
-   * Belgeyi private bucket'a yükler. Yol kuralı `{doctorId}/{dosya}` —
-   * storage RLS politikaları (bkz. migration) bu ilk klasör segmentine
-   * göre erişimi sınırlıyor, bu yüzden yol biçimi kritik.
-   */
-  async uploadDocument(doctorId: string, file: File): Promise<string> {
-    const safeExtension = file.name.split(".").pop()?.toLowerCase() ?? "pdf";
-    const path = `${doctorId}/${Date.now()}.${safeExtension}`;
-
-    const { error } = await this.client.storage.from(STORAGE_BUCKET).upload(path, file, {
-      upsert: false,
-    });
-
-    if (error) {
-      throw new Error(`Belge yüklenemedi: ${error.message}`);
+  /** Private bucket'taki kullanıcıya ait belgeyi sunucuda doğrulamak için indirir. */
+  async downloadOwnDocument(doctorId: string, documentPath: string): Promise<Blob> {
+    if (!documentPath.startsWith(`${doctorId}/`)) {
+      throw new Error("Belge yolu kullanıcı hesabıyla eşleşmiyor.");
     }
-    return path;
+
+    const fileName = documentPath.slice(doctorId.length + 1);
+    if (!/^[a-zA-Z0-9._-]+\.(pdf|jpg|png)$/.test(fileName)) {
+      throw new Error("Belge yolu geçersiz.");
+    }
+
+    const { data, error } = await this.client.storage
+      .from(VERIFICATION_DOCUMENT_STORAGE_BUCKET)
+      .download(documentPath);
+
+    if (error || !data) {
+      throw new Error(`Belge doğrulanamadı: ${error?.message ?? "Dosya bulunamadı"}`);
+    }
+    return data;
   }
 
   /** Yeni bir doğrulama başvurusu oluşturur (her zaman 'pending' — bkz. RLS with check). */

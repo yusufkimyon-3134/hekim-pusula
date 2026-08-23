@@ -1,67 +1,68 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DoctorVerificationRepository } from "@/lib/repositories/doctor-verification-repository";
 import {
-  ACCEPTED_DOCUMENT_MIME_TYPES,
+  detectDocumentMimeType,
   MAX_DOCUMENT_SIZE_BYTES,
-  verificationRequestSchema,
-} from "@/lib/validations/verification";
+} from "@/lib/verification-document";
+import { verificationRequestSchema } from "@/lib/validations/verification";
 
-export async function submitVerificationRequest(formData: FormData) {
+type VerificationSubmission = {
+  fullName: string;
+  documentType: string;
+  documentPath: string;
+};
+
+type VerificationSubmissionResult = { success: true } | { success: false; error: string };
+
+export async function submitVerificationRequest(
+  input: VerificationSubmission
+): Promise<VerificationSubmissionResult> {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
 
   if (!userData.user) {
-    redirect("/login");
+    return { success: false, error: "Oturumun sona ermiş. Lütfen tekrar giriş yap." };
   }
 
   const parsed = verificationRequestSchema.safeParse({
-    fullName: formData.get("fullName"),
-    documentType: formData.get("documentType"),
+    fullName: input.fullName,
+    documentType: input.documentType,
   });
 
   if (!parsed.success) {
-    redirect(`/profile?verificationError=${encodeURIComponent(parsed.error.issues[0].message)}`);
-  }
-
-  const file = formData.get("document");
-  if (!(file instanceof File) || file.size === 0) {
-    redirect(`/profile?verificationError=${encodeURIComponent("Lütfen bir belge seç.")}`);
-  }
-
-  if (!ACCEPTED_DOCUMENT_MIME_TYPES.includes(file.type)) {
-    redirect(
-      `/profile?verificationError=${encodeURIComponent(
-        "Yalnızca PDF, JPG veya PNG dosyası yükleyebilirsin."
-      )}`
-    );
-  }
-
-  if (file.size > MAX_DOCUMENT_SIZE_BYTES) {
-    redirect(
-      `/profile?verificationError=${encodeURIComponent("Dosya boyutu en fazla 10 MB olabilir.")}`
-    );
+    return { success: false, error: parsed.error.issues[0].message };
   }
 
   const verificationRepository = new DoctorVerificationRepository(supabase);
 
-  let errorMessage: string | null = null;
   try {
-    const documentPath = await verificationRepository.uploadDocument(userData.user.id, file);
+    const document = await verificationRepository.downloadOwnDocument(
+      userData.user.id,
+      input.documentPath
+    );
+    if (document.size > MAX_DOCUMENT_SIZE_BYTES) {
+      return { success: false, error: "Dosya boyutu en fazla 10 MB olabilir." };
+    }
+
+    const detectedMimeType = await detectDocumentMimeType(document);
+
+    if (!detectedMimeType) {
+      return { success: false, error: "Dosya geçerli bir PDF, JPG veya PNG belgesi değil." };
+    }
+
     await verificationRepository.createRequest(userData.user.id, {
       fullName: parsed.data.fullName,
       documentType: parsed.data.documentType,
-      documentPath,
+      documentPath: input.documentPath,
     });
   } catch (e) {
-    errorMessage = e instanceof Error ? e.message : "Bilinmeyen hata";
+    return {
+      success: false,
+      error: e instanceof Error ? e.message : "Başvuru kaydedilemedi.",
+    };
   }
 
-  if (errorMessage) {
-    redirect(`/profile?verificationError=${encodeURIComponent(errorMessage)}`);
-  }
-
-  redirect("/profile?verificationSubmitted=1");
+  return { success: true };
 }

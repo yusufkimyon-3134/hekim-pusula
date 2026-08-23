@@ -1,17 +1,5 @@
 import { z } from "zod";
-
-export const VERIFICATION_DOCUMENT_TYPES = ["diploma", "specialty_certificate"] as const;
-
-export const VERIFICATION_DOCUMENT_TYPE_LABELS: Record<
-  (typeof VERIFICATION_DOCUMENT_TYPES)[number],
-  string
-> = {
-  diploma: "Diploma",
-  specialty_certificate: "Uzmanlık Belgesi",
-};
-
-export const ACCEPTED_DOCUMENT_MIME_TYPES = ["application/pdf", "image/jpeg", "image/png"];
-export const MAX_DOCUMENT_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+import { VERIFICATION_DOCUMENT_TYPES } from "@/lib/verification-document";
 
 export const verificationRequestSchema = z.object({
   fullName: z
