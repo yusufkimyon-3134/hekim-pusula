@@ -4,9 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import type { ClinicSummaryResult } from "@/lib/ai/types";
 
 /**
- * AI özetini gösterir. `result` yoksa `unavailableReason` ile nedenini
- * açıkça belirtir ("AI Safety: yetersiz veri açıkça belirtilmeli") —
- * asla sessizce boş kalmaz ya da veri uydurmaz.
+ * AI özetini gösterir. Teknik servis/yapılandırma ayrıntıları son kullanıcıya
+ * gösterilmez; özet üretilemezse güvenli ve ürün odaklı bir mesaj gösterilir.
  */
 export function AiClinicSummaryCard({
   result,
@@ -15,6 +14,10 @@ export function AiClinicSummaryCard({
   result: ClinicSummaryResult | null;
   unavailableReason?: string;
 }) {
+  const isInsufficientData =
+    unavailableReason?.toLocaleLowerCase("tr-TR").includes("yetersiz") ||
+    unavailableReason?.toLocaleLowerCase("tr-TR").includes("insufficient");
+
   return (
     <Card className="border-primary/20 bg-gradient-to-br from-accent/40 to-transparent">
       <CardHeader>
@@ -49,7 +52,9 @@ export function AiClinicSummaryCard({
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">
-            {unavailableReason ?? "AI özeti şu an kullanılamıyor."}
+            {isInsufficientData
+              ? "AI özeti için henüz yeterli sayıda hekim deneyimi bulunmuyor. Yeni değerlendirmeler geldikçe bu bölüm otomatik olarak güncellenecek."
+              : "AI özeti şu anda hazırlanıyor. Bu klinikteki hekim deneyimleri aşağıdaki değerlendirmelerden incelenebilir."}
           </p>
         )}
       </CardContent>
