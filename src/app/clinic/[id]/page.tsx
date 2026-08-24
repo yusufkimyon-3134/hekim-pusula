@@ -25,6 +25,12 @@ import { generateClinicSummary } from "@/lib/ai/services/clinic-summary-service"
 import { generateClinicInsights } from "@/lib/ai/services/insights-service";
 import { AiNotConfiguredError, InsufficientDataError, type ClinicSummaryResult } from "@/lib/ai/types";
 
+// AI provider credentials are server-only secrets. Force this page to execute in
+// the Node.js runtime so Vercel injects Production runtime environment variables
+// into the function instead of relying on Edge middleware/runtime semantics.
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const siteUrl = "https://www.hekimpusula.com.tr";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
