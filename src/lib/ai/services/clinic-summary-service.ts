@@ -8,16 +8,21 @@ import {
 import type { ReviewWithScores } from "@/types";
 
 /**
- * Anlamlı bir "hekimler tutarlı şekilde şunu söylüyor" özeti için
- * gereken asgari onaylı yorum sayısı. Bunun altında özet ÜRETİLMEZ —
- * tek bir yorumu "AI özeti" gibi sunmak yanıltıcı olurdu (AI Safety
- * ilkesi: "yetersiz veri açıkça belirtilmeli").
+ * Anlamlı bir klinik özeti için gereken asgari onaylı değerlendirme sayısı.
+ * Özet yalnızca serbest metin yorumlarına değil; puanlar, nöbet sayısı ve
+ * tekrar tercih etme yanıtı gibi yapılandırılmış değerlendirme alanlarına da
+ * dayanır. Bu nedenle yorum metni boş olan onaylı değerlendirmeler de hesaba
+ * katılır.
  */
 const MIN_REVIEWS_FOR_SUMMARY = 3;
 
 function parseJsonResponse(raw: string): ClinicSummaryResult | null {
   try {
-    const cleaned = raw.trim().replace(/^```json\s*|```$/g, "");
+    const cleaned = raw
+      .trim()
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/\s*```$/, "")
+      .trim();
     const parsed = JSON.parse(cleaned);
     if (
       typeof parsed.strengths === "string" &&
@@ -33,17 +38,15 @@ function parseJsonResponse(raw: string): ClinicSummaryResult | null {
 }
 
 /**
- * @throws {InsufficientDataError} yeterli onaylı yorum yoksa
+ * @throws {InsufficientDataError} yeterli onaylı değerlendirme yoksa
  * @throws {AiNotConfiguredError} ANTHROPIC_API_KEY tanımlı değilse
  */
 export async function generateClinicSummary(
   reviews: ReviewWithScores[]
 ): Promise<ClinicSummaryResult> {
-  const reviewsWithComments = reviews.filter((r) => r.comment && r.comment.trim().length > 0);
-
-  if (reviewsWithComments.length < MIN_REVIEWS_FOR_SUMMARY) {
+  if (reviews.length < MIN_REVIEWS_FOR_SUMMARY) {
     throw new InsufficientDataError(
-      `Bir özet oluşturmak için en az ${MIN_REVIEWS_FOR_SUMMARY} yorumlu değerlendirme gerekiyor (şu an ${reviewsWithComments.length}).`
+      `AI özeti için en az ${MIN_REVIEWS_FOR_SUMMARY} onaylı değerlendirme gerekiyor (şu an ${reviews.length}).`
     );
   }
 
@@ -52,7 +55,7 @@ export async function generateClinicSummary(
     throw new AiNotConfiguredError();
   }
 
-  const { system, prompt } = buildClinicSummaryPrompt(reviewsWithComments);
+  const { system, prompt } = buildClinicSummaryPrompt(reviews);
   const raw = await adapter.complete({ system, prompt, maxTokens: 600 });
 
   const parsed = parseJsonResponse(raw);
@@ -60,5 +63,5 @@ export async function generateClinicSummary(
     throw new Error("AI yanıtı beklenen biçimde değildi.");
   }
 
-  return { ...parsed, basedOnReviewCount: reviewsWithComments.length };
+  return { ...parsed, basedOnReviewCount: reviews.length };
 }
