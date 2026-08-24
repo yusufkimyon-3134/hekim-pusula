@@ -2,17 +2,28 @@ import { AnthropicAdapter } from "@/lib/ai/adapters/anthropic-adapter";
 import type { LlmAdapter } from "@/lib/ai/types";
 
 /**
- * Yapılandırılmış LLM adapter'ını döner, `ANTHROPIC_API_KEY` tanımlı
- * değilse `null` döner (throw etmez) — çağıran servisler bunu "AI şu an
- * kullanılamıyor" gibi zarif bir duruma çevirir (bkz. AI Safety ilkesi:
- * "yetersiz veri/durum açıkça belirtilmeli").
+ * Yapılandırılmış LLM adapter'ını döner.
  *
- * Başka bir sağlayıcıya geçmek (örn. OpenAI) yalnızca burada yeni bir
- * `if` dalı eklemek ve o sağlayıcı için `LlmAdapter`'ı uygulayan yeni
- * bir adapter yazmak demektir — servis katmanı hiç değişmez.
+ * Anahtarı dinamik olarak runtime'da okuyoruz. Bu, serverless bundle/build
+ * aşamasında doğrudan process.env.ANTHROPIC_API_KEY erişiminin yanlışlıkla
+ * undefined olarak sabitlenmesini önler ve Vercel Production environment
+ * değişkeninin fonksiyon çalışırken okunmasını sağlar.
  */
 export function getLlmAdapter(): LlmAdapter | null {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return null;
+  const raw = Reflect.get(process.env, "ANTHROPIC_API_KEY");
+  const apiKey = typeof raw === "string" ? raw.trim() : "";
+
+  if (!apiKey) {
+    console.error("[ai-config] ANTHROPIC_API_KEY missing at runtime", {
+      vercelEnv: process.env.VERCEL_ENV ?? null,
+      targetEnv: process.env.VERCEL_TARGET_ENV ?? null,
+      hasKeyProperty: Object.prototype.hasOwnProperty.call(
+        process.env,
+        "ANTHROPIC_API_KEY"
+      ),
+    });
+    return null;
+  }
+
   return new AnthropicAdapter(apiKey);
 }
