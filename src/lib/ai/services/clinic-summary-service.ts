@@ -37,9 +37,7 @@ export async function generateClinicSummary(
 
   const adapter = getLlmAdapter();
   if (!adapter) {
-    throw new AiNotConfiguredError(
-      "AI servisi yapılandırılmamış. Production ortamında ANTHROPIC_API_KEY veya AI Gateway kimlik bilgisi bulunamadı."
-    );
+    throw new AiNotConfiguredError();
   }
 
   const { system, prompt } = buildClinicSummaryPrompt(reviews);
