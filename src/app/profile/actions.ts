@@ -10,10 +10,13 @@ export async function saveProfile(formData: FormData) {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
 
-  const redirectTo = safeRedirectPath(
-    formData.get("redirectTo")?.toString(),
-    "/profile?saved=1"
-  );
+  const requestedRedirect = formData.get("redirectTo")?.toString();
+  // Her normal profil kaydında URL'yi değiştirerek kullanıcıya kaydın gerçekten
+  // tamamlandığını net biçimde göster. Daha önce /profile?saved=1 üzerinde
+  // tekrar kaydedildiğinde aynı URL'ye redirect edildiği için özellikle mobilde
+  // buton çalışmamış gibi görünebiliyordu.
+  const fallbackRedirect = `/profile?saved=${Date.now()}`;
+  const redirectTo = safeRedirectPath(requestedRedirect, fallbackRedirect);
 
   if (!userData.user) {
     redirect("/login");
@@ -30,7 +33,11 @@ export async function saveProfile(formData: FormData) {
   });
 
   if (!parsed.success) {
-    redirect(`/profile?error=${encodeURIComponent(parsed.error.issues[0].message)}`);
+    const error = encodeURIComponent(parsed.error.issues[0].message);
+    const returnTo = requestedRedirect
+      ? `&redirectTo=${encodeURIComponent(safeRedirectPath(requestedRedirect, "/profile"))}`
+      : "";
+    redirect(`/profile?error=${error}${returnTo}`);
   }
 
   const doctorRepository = new DoctorRepository(supabase);
@@ -43,7 +50,10 @@ export async function saveProfile(formData: FormData) {
   }
 
   if (errorMessage) {
-    redirect(`/profile?error=${encodeURIComponent(errorMessage)}`);
+    const returnTo = requestedRedirect
+      ? `&redirectTo=${encodeURIComponent(safeRedirectPath(requestedRedirect, "/profile"))}`
+      : "";
+    redirect(`/profile?error=${encodeURIComponent(errorMessage)}${returnTo}`);
   }
 
   redirect(redirectTo);
