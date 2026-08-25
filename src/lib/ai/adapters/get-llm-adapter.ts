@@ -7,10 +7,11 @@ import type { LlmAdapter } from "@/lib/ai/types";
  * 1. Direct Anthropic key, when explicitly configured.
  * 2. Vercel AI Gateway. Production deployments receive VERCEL_OIDC_TOKEN
  *    automatically; AI_GATEWAY_API_KEY is also supported for other runtimes.
- * 3. null, allowing the service layer to use its deterministic local fallback.
+ * 3. null, allowing the service layer to surface an unavailable state.
  *
- * This file intentionally changes with AI config fixes so Vercel creates a
- * completely new production deployment and re-reads project environment vars.
+ * This commit intentionally forces a fresh production deployment after the
+ * Production secret was re-saved in Vercel, so the new function snapshot picks
+ * up the latest environment configuration.
  */
 export function getLlmAdapter(): LlmAdapter | null {
   const anthropicApiKey = process.env.ANTHROPIC_API_KEY?.trim();
