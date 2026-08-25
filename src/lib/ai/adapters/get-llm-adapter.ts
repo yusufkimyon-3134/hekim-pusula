@@ -6,6 +6,10 @@ import type { LlmAdapter } from "@/lib/ai/types";
  *
  * Hekim Pusula uses the direct Anthropic Messages API. The API key is a
  * server-only Vercel secret and is never exposed to client-side code.
+ *
+ * This file also intentionally changes after a Production secret refresh so
+ * Vercel performs a brand-new Git build instead of redeploying an older
+ * deployment snapshot.
  */
 export function getLlmAdapter(): LlmAdapter | null {
   const anthropicApiKey = process.env.ANTHROPIC_API_KEY?.trim();
