@@ -1,16 +1,13 @@
 import type { LlmAdapter, LlmCompletionRequest } from "@/lib/ai/types";
 
 /**
- * Gerçek Anthropic API çağrısı. Uç nokta ve istek şekli bu sandbox'ta
- * kimlik doğrulamasız bir istekle doğrulandı (401 "x-api-key header is
- * required" — yani istek doğru şekilde ulaşıyor, yalnızca gerçek bir
- * anahtar eksik). Gerçek dağıtımda `ANTHROPIC_API_KEY` tanımlandığında
- * bu adapter olduğu gibi çalışır.
+ * Direct Anthropic Messages API adapter.
+ * The API key is read server-side by getLlmAdapter and is never exposed to the client.
  */
 export class AnthropicAdapter implements LlmAdapter {
   constructor(
     private readonly apiKey: string,
-    private readonly model: string = "claude-sonnet-4-5"
+    private readonly model: string = "claude-opus-5"
   ) {}
 
   async complete({ system, prompt, maxTokens = 1024 }: LlmCompletionRequest): Promise<string> {
@@ -27,20 +24,31 @@ export class AnthropicAdapter implements LlmAdapter {
         system,
         messages: [{ role: "user", content: prompt }],
       }),
+      cache: "no-store",
     });
 
     if (!response.ok) {
       const body = await response.text();
-      throw new Error(`Anthropic API hatası (${response.status}): ${body}`);
+      console.error("[anthropic] request failed", {
+        status: response.status,
+        model: this.model,
+        body: body.slice(0, 1000),
+      });
+      throw new Error(`Anthropic API hatası (${response.status}).`);
     }
 
     const data = await response.json();
     const textBlock = (data.content ?? []).find(
-      (block: { type: string }) => block.type === "text"
+      (block: { type: string; text?: string }) => block.type === "text"
     );
-    if (!textBlock) {
+
+    if (!textBlock?.text) {
+      console.error("[anthropic] response did not contain a text block", {
+        model: this.model,
+      });
       throw new Error("Anthropic yanıtında metin bloğu bulunamadı.");
     }
-    return textBlock.text as string;
+
+    return textBlock.text;
   }
 }
