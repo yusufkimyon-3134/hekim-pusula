@@ -7,7 +7,7 @@ import type { LlmAdapter, LlmCompletionRequest } from "@/lib/ai/types";
 export class AnthropicAdapter implements LlmAdapter {
   constructor(
     private readonly apiKey: string,
-    private readonly model: string = "claude-opus-5"
+    private readonly model: string = "claude-sonnet-5"
   ) {}
 
   async complete({ system, prompt, maxTokens = 1024 }: LlmCompletionRequest): Promise<string> {
