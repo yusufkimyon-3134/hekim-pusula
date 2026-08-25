@@ -1,28 +1,26 @@
-import { generateText } from "ai";
-import type { LlmAdapter, LlmCompletionRequest } from "@/lib/ai/types";
-
-class VercelAiGatewayAdapter implements LlmAdapter {
-  async complete({ system, prompt, maxTokens = 1024 }: LlmCompletionRequest): Promise<string> {
-    const result = await generateText({
-      model: "anthropic/claude-sonnet-4.5",
-      system,
-      prompt,
-      maxOutputTokens: maxTokens,
-    });
-    return result.text;
-  }
-}
+import { AnthropicAdapter } from "@/lib/ai/adapters/anthropic-adapter";
+import type { LlmAdapter } from "@/lib/ai/types";
 
 /**
- * On Vercel, AI SDK uses AI Gateway automatically. Vercel deployments can
- * authenticate to the gateway using the platform-provided OIDC identity, so
- * the app does not need to read ANTHROPIC_API_KEY at runtime.
+ * Production provider selection.
+ * Prefer the server-only Anthropic key so clinic summaries do not depend on
+ * Vercel AI Gateway billing or OIDC configuration.
  */
 export function getLlmAdapter(): LlmAdapter {
-  console.info("[ai-config] provider=vercel-ai-gateway", {
+  const anthropicApiKey = process.env.ANTHROPIC_API_KEY?.trim();
+
+  if (!anthropicApiKey) {
+    console.error("[ai-config] ANTHROPIC_API_KEY missing", {
+      vercelEnv: process.env.VERCEL_ENV ?? null,
+      targetEnv: process.env.VERCEL_TARGET_ENV ?? null,
+    });
+    throw new Error("ANTHROPIC_API_KEY is not available to the server runtime.");
+  }
+
+  console.info("[ai-config] provider=anthropic-direct", {
     vercelEnv: process.env.VERCEL_ENV ?? null,
     targetEnv: process.env.VERCEL_TARGET_ENV ?? null,
-    hasOidcToken: Boolean(process.env.VERCEL_OIDC_TOKEN),
   });
-  return new VercelAiGatewayAdapter();
+
+  return new AnthropicAdapter(anthropicApiKey);
 }
