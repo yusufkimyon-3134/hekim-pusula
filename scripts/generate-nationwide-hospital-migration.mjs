@@ -27,6 +27,7 @@ for (let plate = 1; plate <= 81; plate += 1) {
   const file = path.join(sourceDir, `${String(plate).padStart(2, "0")}.json`);
   const buffer = fs.readFileSync(file);
   let raw = buffer.toString("utf8").trim();
+  if (raw.includes("�")) raw = new TextDecoder("windows-1254").decode(buffer).trim();
   if (raw.startsWith('[{\\"')) raw = raw.replaceAll('\\"', '"');
   let records;
   try {
@@ -83,7 +84,11 @@ const values = unique
   .map((h) => `    (${sql(h.name)}, ${sql(h.city)}, ${sql(h.district)}, ${sql(h.hospitalType)})`)
   .join(",\n");
 const branchValues = branches.map((b) => `    (${sql(b)})`).join(",\n");
-const migration = `-- Türkiye'nin 81 ilindeki kamu hastaneleri için ülke geneli başlangıç kataloğu.\n-- Kaynak taban: MHRS kamu sağlık tesisi verisi; projedeki daha yeni il kayıtları korunur.\n-- Ağız ve diş sağlığı merkezleri bu tıp kliniği kataloğuna dahil değildir.\n-- Standart klinik şablonu, projedeki mevcut il ekleme migrasyonlarıyla aynıdır.\n-- İdempotenttir; aynı kurum/klinik ikinci kez eklenmez.\n\nwith hospital_seed(name, city, district, hospital_type) as (\n  values\n${values}\n)\ninsert into public.hospitals (name, city, district, hospital_type)\nselect name, city, district, hospital_type::public.hospital_type\nfrom hospital_seed s\nwhere not exists (\n  select 1 from public.hospitals h\n  where lower(h.name)=lower(s.name) and h.city=s.city and h.district=s.district\n);\n\nwith hospital_seed(name, city, district) as (\n  values\n${unique.map((h) => `    (${sql(h.name)}, ${sql(h.city)}, ${sql(h.district)})`).join(",\n")}\n), branch_seed(branch) as (\n  values\n${branchValues}\n), target_hospitals as (\n  select distinct h.id\n  from public.hospitals h\n  join hospital_seed s\n    on lower(h.name)=lower(s.name) and h.city=s.city and h.district=s.district\n)\ninsert into public.clinics (hospital_id, branch)\nselect th.id, bs.branch\nfrom target_hospitals th cross join branch_seed bs\nwhere not exists (\n  select 1 from public.clinics c\n  where c.hospital_id=th.id and c.branch=bs.branch\n);\n`;
+let migration = `-- Türkiye'nin 81 ilindeki kamu hastaneleri için ülke geneli başlangıç kataloğu.\n-- Kaynak taban: MHRS kamu sağlık tesisi verisi; projedeki daha yeni il kayıtları korunur.\n-- Ağız ve diş sağlığı merkezleri bu tıp kliniği kataloğuna dahil değildir.\n-- Standart klinik şablonu, projedeki mevcut il ekleme migrasyonlarıyla aynıdır.\n-- İdempotenttir; aynı kurum/klinik ikinci kez eklenmez.\n\nwith hospital_seed(name, city, district, hospital_type) as (\n  values\n${values}\n)\ninsert into public.hospitals (name, city, district, hospital_type)\nselect name, city, district, hospital_type::public.hospital_type\nfrom hospital_seed s\nwhere not exists (\n  select 1 from public.hospitals h\n  where lower(h.name)=lower(s.name) and h.city=s.city and h.district=s.district\n);\n\nwith hospital_seed(name, city, district) as (\n  values\n${unique.map((h) => `    (${sql(h.name)}, ${sql(h.city)}, ${sql(h.district)})`).join(",\n")}\n), branch_seed(branch) as (\n  values\n${branchValues}\n), target_hospitals as (\n  select distinct h.id\n  from public.hospitals h\n  join hospital_seed s\n    on lower(h.name)=lower(s.name) and h.city=s.city and h.district=s.district\n)\ninsert into public.clinics (hospital_id, branch)\nselect th.id, bs.branch\nfrom target_hospitals th cross join branch_seed bs\nwhere not exists (\n  select 1 from public.clinics c\n  where c.hospital_id=th.id and c.branch=bs.branch\n);\n`;
 
+migration = migration.replace(
+  "  select distinct h.id\n  from public.hospitals h\n  join hospital_seed s\n    on lower(h.name)=lower(s.name) and h.city=s.city and h.district=s.district",
+  "  select id from public.hospitals"
+);
 fs.writeFileSync(outputFile, migration);
 console.log(JSON.stringify({ hospitals: unique.length, cities: covered.size, branches: branches.length, outputFile }));
