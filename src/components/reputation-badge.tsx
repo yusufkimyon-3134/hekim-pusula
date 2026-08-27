@@ -32,7 +32,7 @@ export function ReputationBadge({
         {reputationTier(reviewCount)}
       </Badge>
       {isVerified && (
-        <Badge variant="soft" className="gap-1">
+        <Badge variant="success" className="gap-1">
           <BadgeCheck className="size-3" />
           Doğrulanmış hekim
         </Badge>
