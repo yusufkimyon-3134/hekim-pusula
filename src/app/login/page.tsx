@@ -9,9 +9,14 @@ import { login } from "./actions";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; redirectTo?: string; passwordReset?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    redirectTo?: string;
+    passwordReset?: string;
+    accountDeleted?: string;
+  }>;
 }) {
-  const { error, redirectTo, passwordReset } = await searchParams;
+  const { error, redirectTo, passwordReset, accountDeleted } = await searchParams;
 
   return (
     <Container className="flex justify-center py-16">
@@ -29,6 +34,15 @@ export default async function LoginPage({
             {passwordReset === "1" && (
               <p className="rounded-md bg-accent px-3 py-2 text-sm text-accent-foreground">
                 Şifren başarıyla yenilendi. Yeni şifrenle giriş yapabilirsin.
+              </p>
+            )}
+
+            {accountDeleted === "1" && (
+              <p
+                role="status"
+                className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900"
+              >
+                Hesabın ve bağlı verilerin kalıcı olarak silindi.
               </p>
             )}
 
