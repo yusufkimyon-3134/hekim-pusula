@@ -34,8 +34,15 @@ export function DeleteAccountCard() {
         return;
       }
 
-      await supabase.auth.signOut({ scope: "local" });
-      window.location.assign("/login?accountDeleted=1");
+      // Auth kullanıcısı sunucuda silindiği için yerel signOut isteği artık
+      // hata verebilir. Bu, başarı yönlendirmesini engellememeli.
+      try {
+        await supabase.auth.signOut({ scope: "local" });
+      } catch {
+        // Hesap zaten silindi; tarayıcı oturumunu temizleme hatası sonucu
+        // değiştirmez ve başarı ekranını engellememelidir.
+      }
+      window.location.replace("/account-deleted");
     } catch {
       setError("Hesabın silinirken beklenmeyen bir hata oluştu.");
     } finally {
