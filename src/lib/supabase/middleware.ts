@@ -26,7 +26,14 @@ let warnedOnce = false;
  */
 type AccessTier = "public" | "authenticated" | "verified";
 
-const PUBLIC_EXACT_PATHS = ["/", "/login", "/register", "/forgot-password", "/reset-password"];
+const PUBLIC_EXACT_PATHS = [
+  "/",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/account-deleted",
+];
 const PUBLIC_PREFIXES = [
   "/auth/callback",
   "/kvkk-aydinlatma",
