@@ -158,8 +158,13 @@ export default async function ProfilePage({
                 </p>
               )}
               {saved && !error && (
-                <p className="rounded-md bg-accent px-3 py-2 text-sm text-accent-foreground">
-                  Profilin kaydedildi.
+                <p
+                  role="status"
+                  className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900"
+                >
+                  {doctor?.isVerified
+                    ? "Bilgilerin başarıyla kaydedildi. Artık deneyimlerini paylaşabilirsin."
+                    : "Bilgilerin başarıyla kaydedildi. Deneyim paylaşabilmek için hekim doğrulamasını tamamla."}
                 </p>
               )}
 
