@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReputationBadge } from "@/components/reputation-badge";
 import { VerificationCard } from "@/features/profile/components/verification-card";
+import { DeleteAccountCard } from "@/features/profile/components/delete-account-card";
 import { createClient } from "@/lib/supabase/server";
 import { DoctorRepository } from "@/lib/repositories/doctor-repository";
 import { DoctorVerificationRepository } from "@/lib/repositories/doctor-verification-repository";
@@ -263,6 +264,8 @@ export default async function ProfilePage({
             </form>
           </CardContent>
         </Card>
+
+        <DeleteAccountCard />
       </div>
     </Container>
   );
