@@ -67,16 +67,21 @@ export class DoctorVerificationRepository {
   async createRequest(
     doctorId: string,
     input: { fullName: string; documentType: VerificationDocumentType; documentPath: string }
-  ): Promise<void> {
-    const { error } = await this.client.from("doctor_verification_requests").insert({
-      doctor_id: doctorId,
-      full_name: input.fullName,
-      document_type: input.documentType,
-      document_path: input.documentPath,
-    });
+  ): Promise<string> {
+    const { data, error } = await this.client
+      .from("doctor_verification_requests")
+      .insert({
+        doctor_id: doctorId,
+        full_name: input.fullName,
+        document_type: input.documentType,
+        document_path: input.documentPath,
+      })
+      .select("id")
+      .single();
 
     if (error) {
       throw new Error(`Doğrulama başvurusu oluşturulamadı: ${error.message}`);
     }
+    return data.id;
   }
 }

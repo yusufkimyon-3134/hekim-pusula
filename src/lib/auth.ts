@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isEnvConfigured } from "@/lib/env";
 import { DoctorRepository } from "@/lib/repositories/doctor-repository";
 import type { Doctor } from "@/types";
+import type { User } from "@supabase/supabase-js";
 
 /**
  * Giriş yapmış kullanıcının auth bilgisini döner, yoksa null.
@@ -19,6 +20,13 @@ export async function getAuthUserId(): Promise<string | null> {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   return data.user?.id ?? null;
+}
+
+export async function getAuthUser(): Promise<User | null> {
+  if (!isEnvConfigured()) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  return data.user ?? null;
 }
 
 /**

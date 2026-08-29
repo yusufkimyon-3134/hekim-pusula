@@ -7,6 +7,7 @@ import {
   MAX_DOCUMENT_SIZE_BYTES,
 } from "@/lib/verification-document";
 import { verificationRequestSchema } from "@/lib/validations/verification";
+import { notifyNewVerificationRequest } from "@/lib/email/admin-notifications";
 
 type VerificationSubmission = {
   fullName: string;
@@ -52,11 +53,12 @@ export async function submitVerificationRequest(
       return { success: false, error: "Dosya geçerli bir PDF, JPG veya PNG belgesi değil." };
     }
 
-    await verificationRepository.createRequest(userData.user.id, {
+    const requestId = await verificationRepository.createRequest(userData.user.id, {
       fullName: parsed.data.fullName,
       documentType: parsed.data.documentType,
       documentPath: input.documentPath,
     });
+    await notifyNewVerificationRequest(requestId);
   } catch (e) {
     return {
       success: false,

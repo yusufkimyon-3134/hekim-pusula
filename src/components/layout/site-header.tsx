@@ -2,14 +2,24 @@ import Link from "next/link";
 import { Container } from "@/components/layout/container";
 import { LogoMark } from "@/components/logo-mark";
 import { SiteHeaderNav } from "@/components/layout/site-header-nav";
-import { getAuthUserId } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth";
 import { logout } from "@/lib/actions/logout";
+import { getPendingVerificationCount } from "@/lib/admin/data";
 
 export async function SiteHeader() {
   // Not: profil tamamlanmamış olsa bile (doctors satırı henüz yoksa)
   // kullanıcı auth açısından "giriş yapmış" sayılır — bu yüzden burada
   // doctors profilini değil, doğrudan auth oturumunu kontrol ediyoruz.
-  const authUserId = await getAuthUserId();
+  const authUser = await getAuthUser();
+  const isAdmin = authUser?.app_metadata?.role === "admin";
+  let pendingVerificationCount = 0;
+  if (isAdmin) {
+    try {
+      pendingVerificationCount = await getPendingVerificationCount();
+    } catch {
+      // Yönetim sayacı ikincildir; bir hata ana menüyü engellememeli.
+    }
+  }
 
   return (
     <header className="border-b border-border bg-primary text-primary-foreground">
@@ -21,8 +31,21 @@ export async function SiteHeader() {
         <nav aria-label="Ana menü" className="flex items-center gap-6 text-sm">
           <SiteHeaderNav />
 
-          {authUserId ? (
+          {authUser ? (
             <>
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-1.5 opacity-90 transition-opacity hover:opacity-100"
+                >
+                  Yönetim
+                  {pendingVerificationCount > 0 && (
+                    <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-amber-300 px-1.5 py-0.5 text-[11px] font-semibold text-primary">
+                      {pendingVerificationCount > 99 ? "99+" : pendingVerificationCount}
+                    </span>
+                  )}
+                </Link>
+              )}
               <Link
                 href="/questions"
                 className="opacity-90 transition-opacity hover:opacity-100"

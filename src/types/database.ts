@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_notification_deliveries: {
+        Row: {
+          created_at: string
+          delivery_key: string
+          id: string
+          kind: string
+          last_error: string | null
+          sent_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_key: string
+          id?: string
+          kind: string
+          last_error?: string | null
+          sent_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delivery_key?: string
+          id?: string
+          kind?: string
+          last_error?: string | null
+          sent_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       branch_synonyms: {
         Row: {
           official_branch: string
@@ -739,6 +769,10 @@ export type Database = {
       }
     }
     Functions: {
+      admin_signup_count_since: {
+        Args: { p_since: string }
+        Returns: number
+      }
       answer_review_question: {
         Args: { p_answer: string; p_question_id: string }
         Returns: undefined
