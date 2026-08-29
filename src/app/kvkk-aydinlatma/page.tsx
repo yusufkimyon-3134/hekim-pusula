@@ -118,7 +118,10 @@ export default function KvkkAydinlatmaPage() {
           <h2 className="text-base font-semibold">7. Doğrulama Belgesinin Silinmesi</h2>
           <p className="text-sm leading-relaxed text-muted-foreground">
             Hekim doğrulama belgeniz, doğrulama işlemi (onay veya red)
-            sonuçlandıktan sonra en geç 30 gün içinde silinmesi hedeflenir.
+            sonuçlandığı anda otomatik silme işlemi başlatılır. Diploma veya
+            uzmanlık belgesi görüntüsü kalıcı olarak saklanmaz. Doğrulama
+            işleminin sonucu ve denetimi için gerekli sınırlı başvuru
+            kayıtları saklanır.
           </p>
         </section>
       </div>

@@ -1,13 +1,11 @@
-// Supabase Edge Function (Deno runtime) — bu proje Next.js/Node içindir,
-// bu dosya AYRI bir çalışma zamanında (Deno, Supabase Edge Functions
-// platformu) çalışır. Kurulum adımları için bkz.
-// docs/verification-document-retention.md.
+// Supabase Edge Function (Deno runtime). Onay/ret kararından hemen sonra
+// veritabanı webhook'u tarafından çağrılır; dakikalık cron görevi de
+// geçici ağ hatalarına karşı aynı temizliği tekrar dener.
 //
 // GÜVENLİK:
-// - Bu fonksiyon herkese açık DEĞİLDİR — her istek, `x-cron-secret`
-//   başlığındaki bir sırrı, yalnızca bu fonksiyona tanımlı
-//   `CLEANUP_CRON_SECRET` ortam değişkeniyle karşılaştırarak doğrular.
-//   Eşleşmezse (ya da hiç yoksa) istek reddedilir.
+// - Supabase platform JWT kontrolüne ek olarak `x-cleanup-secret`
+//   başlığının SHA-256 özeti doğrulanır. Sırrın kendisi yalnızca Vault'ta
+//   tutulur; kodda ve migration dosyalarında bulunmaz.
 // - `SUPABASE_SERVICE_ROLE_KEY`, YALNIZCA burada, Edge Function'ın kendi
 //   ortam değişkeni olarak kullanılıyor — hiçbir migration dosyasına,
 //   Next.js koduna veya Git'e yazılmıyor. Supabase, Edge Function'lara
@@ -24,16 +22,30 @@
 //   doldurulur ve document_path null'a çekilir. Başvuru satırının
 //   kendisi hiçbir zaman silinmez.
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.111.0";
 
 const BUCKET = "doctor-verification-documents";
-const BATCH_SIZE = 20;
+const BATCH_SIZE = 100;
+const EXPECTED_SECRET_SHA256 =
+  "c7619d8c6c34a06b918eff4e0e74112ad28c378073e837f07518ea31f2482189";
+
+async function sha256Hex(value: string) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
 
 Deno.serve(async (req: Request) => {
-  const expectedSecret = Deno.env.get("CLEANUP_CRON_SECRET");
-  const providedSecret = req.headers.get("x-cron-secret");
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json", Allow: "POST" },
+    });
+  }
 
-  if (!expectedSecret || providedSecret !== expectedSecret) {
+  const providedSecret = req.headers.get("x-cleanup-secret") ?? "";
+  if (!providedSecret || (await sha256Hex(providedSecret)) !== EXPECTED_SECRET_SHA256) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },
@@ -58,7 +70,7 @@ Deno.serve(async (req: Request) => {
     .is("document_deleted_at", null)
     .not("document_path", "is", null)
     .not("document_delete_after", "is", null)
-    .lt("document_delete_after", new Date().toISOString())
+    .lte("document_delete_after", new Date().toISOString())
     .limit(BATCH_SIZE);
 
   if (fetchError) {
