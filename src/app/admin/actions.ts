@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getCurrentAdmin } from "@/lib/admin/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 const requestIdSchema = z.string().uuid();
 
@@ -20,8 +20,8 @@ async function decideRequest(formData: FormData, status: "approved" | "rejected"
     redirect("/admin?error=rejection-reason");
   }
 
-  const admin = createAdminClient();
-  const { data, error } = await admin
+  const supabase = await createClient();
+  const { data, error } = await supabase
     .from("doctor_verification_requests")
     .update({
       status,
