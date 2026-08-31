@@ -1,23 +1,20 @@
 import Link from "next/link";
 import { Container } from "@/components/layout/container";
 import { LogoMark } from "@/components/logo-mark";
-import { SiteHeaderNav } from "@/components/layout/site-header-nav";
 import { getAuthUser } from "@/lib/auth";
 import { logout } from "@/lib/actions/logout";
 import { getPendingVerificationCount } from "@/lib/admin/data";
 
 export async function SiteHeader() {
-  // Not: profil tamamlanmamış olsa bile (doctors satırı henüz yoksa)
-  // kullanıcı auth açısından "giriş yapmış" sayılır — bu yüzden burada
-  // doctors profilini değil, doğrudan auth oturumunu kontrol ediyoruz.
   const authUser = await getAuthUser();
   const isAdmin = authUser?.app_metadata?.role === "admin";
   let pendingVerificationCount = 0;
+
   if (isAdmin) {
     try {
       pendingVerificationCount = await getPendingVerificationCount();
     } catch {
-      // Yönetim sayacı ikincildir; bir hata ana menüyü engellememeli.
+      // Admin sayacı ikincildir; bir hata ana menüyü engellememeli.
     }
   }
 
@@ -28,17 +25,26 @@ export async function SiteHeader() {
           <LogoMark className="h-6 w-6 text-[color:var(--color-ring)]" />
           <span>Hekim Pusula</span>
         </Link>
+
         <nav aria-label="Ana menü" className="flex items-center gap-6 text-sm">
-          <SiteHeaderNav />
+          <Link href="/" className="opacity-90 transition-opacity hover:opacity-100">
+            Ana sayfa
+          </Link>
 
           {authUser ? (
             <>
+              <Link href="/questions" className="opacity-90 transition-opacity hover:opacity-100">
+                Sorularım
+              </Link>
+              <Link href="/profile" className="opacity-90 transition-opacity hover:opacity-100">
+                Profilim
+              </Link>
               {isAdmin && (
                 <Link
                   href="/admin"
                   className="flex items-center gap-1.5 opacity-90 transition-opacity hover:opacity-100"
                 >
-                  Yönetim
+                  Admin Paneli
                   {pendingVerificationCount > 0 && (
                     <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-amber-300 px-1.5 py-0.5 text-[11px] font-semibold text-primary">
                       {pendingVerificationCount > 99 ? "99+" : pendingVerificationCount}
@@ -46,18 +52,6 @@ export async function SiteHeader() {
                   )}
                 </Link>
               )}
-              <Link
-                href="/questions"
-                className="opacity-90 transition-opacity hover:opacity-100"
-              >
-                Sorularım
-              </Link>
-              <Link
-                href="/profile"
-                className="opacity-90 transition-opacity hover:opacity-100"
-              >
-                Profilim
-              </Link>
               <form action={logout}>
                 <button
                   type="submit"
@@ -69,10 +63,7 @@ export async function SiteHeader() {
             </>
           ) : (
             <>
-              <Link
-                href="/login"
-                className="opacity-90 transition-opacity hover:opacity-100"
-              >
+              <Link href="/login" className="opacity-90 transition-opacity hover:opacity-100">
                 Giriş yap
               </Link>
               <Link
@@ -88,4 +79,3 @@ export async function SiteHeader() {
     </header>
   );
 }
-
