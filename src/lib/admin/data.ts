@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { VERIFICATION_DOCUMENT_STORAGE_BUCKET } from "@/lib/verification-document";
 
 export type PendingVerification = {
@@ -12,8 +12,8 @@ export type PendingVerification = {
 };
 
 export async function getPendingVerificationCount(): Promise<number> {
-  const admin = createAdminClient();
-  const { count, error } = await admin
+  const supabase = await createClient();
+  const { count, error } = await supabase
     .from("doctor_verification_requests")
     .select("id", { count: "exact", head: true })
     .eq("status", "pending");
@@ -23,17 +23,17 @@ export async function getPendingVerificationCount(): Promise<number> {
 }
 
 export async function getAdminDashboardData() {
-  const admin = createAdminClient();
+  const supabase = await createClient();
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
   const [{ data: rows, error }, { data: signupCount, error: signupError }] =
     await Promise.all([
-      admin
+      supabase
         .from("doctor_verification_requests")
         .select("id, full_name, document_type, document_path, created_at")
         .eq("status", "pending")
         .order("created_at", { ascending: true }),
-      admin.rpc("admin_signup_count_since", { p_since: since }),
+      supabase.rpc("admin_signup_count_since", { p_since: since }),
     ]);
 
   if (error) throw new Error(`Bekleyen başvurular alınamadı: ${error.message}`);
@@ -43,7 +43,7 @@ export async function getAdminDashboardData() {
     (rows ?? []).map(async (row) => {
       let documentUrl: string | null = null;
       if (row.document_path) {
-        const { data } = await admin.storage
+        const { data } = await supabase.storage
           .from(VERIFICATION_DOCUMENT_STORAGE_BUCKET)
           .createSignedUrl(row.document_path, 5 * 60);
         documentUrl = data?.signedUrl ?? null;
