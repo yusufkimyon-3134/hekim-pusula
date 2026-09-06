@@ -28,7 +28,7 @@ export async function register(formData: FormData) {
   const email = parsed.data.email.trim().toLowerCase();
   const origin = await getOrigin();
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({ email, password: parsed.data.password, options: { emailRedirectTo: `${origin}/auth/callback?next=/profile` } });
+  const { error } = await supabase.auth.signUp({ email, password: parsed.data.password, options: { emailRedirectTo: `${origin}/auth/confirm?next=/profile` } });
   if (error) redirect(`/register?error=${encodeURIComponent(getFriendlyAuthError(error.message))}`);
   redirect(`/register?checkEmail=1&email=${encodeURIComponent(email)}`);
 }
@@ -39,7 +39,7 @@ export async function resendActivation(formData: FormData) {
 
   const origin = await getOrigin();
   const supabase = await createClient();
-  const { error } = await supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: `${origin}/auth/callback?next=/profile` } });
+  const { error } = await supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: `${origin}/auth/confirm?next=/profile` } });
   if (error) redirect(`/register?checkEmail=1&email=${encodeURIComponent(email)}&error=${encodeURIComponent(getFriendlyAuthError(error.message))}`);
   redirect(`/register?checkEmail=1&email=${encodeURIComponent(email)}&resent=1`);
 }
