@@ -1,22 +1,16 @@
-"use client";
-
-import { useEffect } from "react";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-export default function ConfirmedPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/profile";
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => router.replace(next), 2200);
-    return () => window.clearTimeout(timer);
-  }, [next, router]);
+export default async function ConfirmedPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next } = await searchParams;
+  const destination = next && next.startsWith("/") && !next.startsWith("//") ? next : "/profile";
 
   return (
     <Container className="flex justify-center py-16">
@@ -28,11 +22,11 @@ export default function ConfirmedPage() {
           <div className="space-y-1.5">
             <p className="text-xl font-semibold">E-posta doğrulandı</p>
             <p className="text-sm text-muted-foreground">
-              Hesabın başarıyla aktifleştirildi. Profilini tamamlaman için yönlendiriliyorsun.
+              Hesabın başarıyla aktifleştirildi. Profilini tamamlamak için devam edebilirsin.
             </p>
           </div>
           <Button asChild className="w-full">
-            <Link href={next}>Devam et</Link>
+            <Link href={destination}>Profilimi tamamla</Link>
           </Button>
         </CardContent>
       </Card>
