@@ -22,8 +22,6 @@ export async function GET(request: NextRequest) {
     });
     errorMessage = error?.message ?? null;
   } else if (code) {
-    // Backward compatibility for confirmation links generated with
-    // Supabase's default ConfirmationURL / PKCE redirect flow.
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     errorMessage = error?.message ?? null;
   } else {
@@ -52,7 +50,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const redirectTo = new URL(next, request.url);
-  redirectTo.search = "";
-  return NextResponse.redirect(redirectTo);
+  const successUrl = new URL("/auth/confirmed", request.url);
+  successUrl.searchParams.set("next", next);
+  return NextResponse.redirect(successUrl);
 }
