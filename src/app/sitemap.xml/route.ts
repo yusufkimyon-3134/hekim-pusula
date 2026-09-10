@@ -11,19 +11,10 @@ const staticRoutes = [
   { path: "/kullanim-kosullari", changeFrequency: "yearly", priority: "0.2" },
 ] as const;
 
-type SitemapEntry = {
-  path: string;
-  changeFrequency: "daily" | "weekly" | "monthly" | "yearly";
-  priority: string;
-};
+type SitemapEntry = { path: string; changeFrequency: "daily" | "weekly" | "monthly" | "yearly"; priority: string };
 
 function escapeXml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&apos;");
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
 }
 
 function renderUrl({ path, changeFrequency, priority }: SitemapEntry) {
@@ -32,39 +23,35 @@ function renderUrl({ path, changeFrequency, priority }: SitemapEntry) {
 
 export async function GET() {
   const entries: SitemapEntry[] = [...staticRoutes];
-
   try {
     const supabase = await createClient();
-    const [{ data: hospitals, error: hospitalsError }, { data: clinics, error: clinicsError }] =
-      await Promise.all([
-        supabase.from("hospitals").select("id").order("id"),
-        supabase.from("clinics").select("id").order("id"),
-      ]);
+    const [{ data: hospitals, error: hospitalsError }, { data: clinics, error: clinicsError }] = await Promise.all([
+      supabase.from("hospitals").select("id, city").order("id"),
+      supabase.from("clinics").select("id, branch").order("id"),
+    ]);
 
     if (!hospitalsError) {
+      const cities = new Set<string>();
       for (const hospital of hospitals ?? []) {
         entries.push({ path: `/hospital/${hospital.id}`, changeFrequency: "weekly", priority: "0.8" });
+        if (hospital.city) cities.add(hospital.city);
       }
+      for (const city of cities) entries.push({ path: `/sehir/${encodeURIComponent(city)}`, changeFrequency: "weekly", priority: "0.8" });
     }
 
     if (!clinicsError) {
+      const branches = new Set<string>();
       for (const clinic of clinics ?? []) {
         entries.push({ path: `/clinic/${clinic.id}`, changeFrequency: "weekly", priority: "0.9" });
+        if (clinic.branch) branches.add(clinic.branch);
       }
+      for (const branch of branches) entries.push({ path: `/brans/${encodeURIComponent(branch)}`, changeFrequency: "weekly", priority: "0.8" });
     }
   } catch {
     // DB geçici olarak erişilemezse Google'a yine geçerli statik sitemap döndür.
   }
 
   const uniqueEntries = Array.from(new Map(entries.map((entry) => [entry.path, entry])).values());
-  const urls = uniqueEntries.map(renderUrl).join("\n");
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
-
-  return new Response(xml, {
-    headers: {
-      "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
-      "X-Robots-Tag": "noindex, follow",
-    },
-  });
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${uniqueEntries.map(renderUrl).join("\n")}\n</urlset>\n`;
+  return new Response(xml, { headers: { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400", "X-Robots-Tag": "noindex, follow" } });
 }
