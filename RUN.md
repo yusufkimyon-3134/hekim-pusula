@@ -45,6 +45,10 @@ Sonra `.env.local`'ı aç ve şu değişkenleri doldur:
 | `NEXT_PUBLIC_SUPABASE_URL` | Gerçek işlevsellik için evet | Supabase projesi → Settings → API → Project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Gerçek işlevsellik için evet | Supabase projesi → Settings → API → `anon` `public` anahtarı |
 | `ANTHROPIC_API_KEY` | Hayır (opsiyonel) | Yalnızca AI klinik özeti / karşılaştırma özeti için. Tanımlı değilse bu iki kart "AI şu an kullanılamıyor" gösterir, uygulamanın geri kalanı normal çalışır. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Sunucu görevleri için | Yönetici bildirim cron'u gibi yalnızca sunucuda çalışan ayrıcalıklı işlemler. Tarayıcıya gönderilmez. |
+| `RESEND_API_KEY` / `EMAIL_FROM` | Bildirimler için | Yönetici e-posta bildirimleri. |
+| `NEXT_PUBLIC_SITE_URL` | Canlı ortam için | E-posta ve yönlendirmelerde kullanılan sitenin kök adresi. |
+| `ADMIN_NOTIFICATION_CRON_SECRET_SHA256` | Opsiyonel | Cron isteğinin paylaşılan sırrına ait SHA-256 özetini özelleştirir. |
 
 > **Önemli:** `.env.local` dosyası **oluşturulmasa bile** `npm run dev`
 > çalışır ve `/`, `/login`, `/register`, `/search` gibi sayfalar açılır —
@@ -63,31 +67,17 @@ npx supabase link --project-ref <proje-ref-kodun>
 npx supabase db push
 ```
 
-`supabase db push`, `supabase/migrations/` klasöründeki **tüm dosyaları
-dosya adındaki zaman damgası sırasına göre otomatik olarak** uygular —
-tek tek elle çalıştırman gerekmez. Sıra (referans için, hepsi zaten
-tarih önekiyle sıralı):
+`supabase db push`, `supabase/migrations/` klasöründeki migration'ları
+dosya adındaki 14 haneli sürüm numarasına göre uygular; tek tek çalıştırmak
+gerekmez. Klasör artık ilk şemanın yanında arama, doğrulama, özel soru-cevap,
+Türkiye geneli hastane kataloğu, belge saklama ve yönetici bildirimlerini de
+içerir. Güncel dosya listesi için `supabase/migrations/` klasörünü esas al.
 
-```
-20260101000001_extensions.sql                    — pgcrypto, pg_trgm
-20260101000002_enums.sql                         — hospital_type, doctor_role, report_status
-20260101000003_set_updated_at_function.sql       — paylaşılan trigger fonksiyonu
-20260101000004_hospitals.sql
-20260101000005_clinics.sql
-20260101000006_doctors.sql                       — auth.users(id)'e referans, kişisel veri yok
-20260101000007_doctor_workplaces.sql
-20260101000008_reviews.sql
-20260101000009_review_scores.sql
-20260101000010_favorites.sql
-20260101000011_reports.sql
-20260101000012_rls_policies.sql                  — ilk RLS (placeholder'lar)
-20260101000013_search_support.sql                — arama view/fonksiyonları
-20260101000014_search_ranking_and_synonyms.sql    — alaka sıralaması, branş eşanlamlıları
-20260101000015_profiles_and_real_rls.sql          — profil alanları, gerçek RLS (auth sonrası)
-20260101000016_submit_review_rpc.sql              — atomik review gönderimi
-20260101000017_comparison_and_ranking.sql          — karşılaştırma/sıralama fonksiyonları
-20260101000018_reputation_moderation_trust.sql     — itibar, moderasyon, faydalı oy, rapor
-20260101000019_ai_topics_and_dashboard.sql         — konu tespiti, AI dashboard
+Push öncesinde migration adlarının geçerli ve sürüm numaralarının benzersiz
+olduğunu doğrula:
+
+```bash
+npm run check:migrations
 ```
 
 Migration'lardan sonra örnek veriyi yükle:
@@ -126,6 +116,7 @@ Tarayıcıda **http://localhost:3000** adresini aç.
 | `npm start` | Production sunucusunu başlatır (önce `npm run build` gerekir) |
 | `npm run lint` | ESLint kontrolü |
 | `npx tsc --noEmit` | TypeScript tip kontrolü (ayrı bir script olarak tanımlı değil, doğrudan çalıştırılır) |
+| `npm run check:migrations` | Migration dosya adlarını ve benzersiz sürüm numaralarını kontrol eder |
 
 ## Sorun Giderme (Troubleshooting)
 

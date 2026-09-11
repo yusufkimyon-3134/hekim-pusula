@@ -95,20 +95,33 @@
 - Anthropic API'ye gerçek bağlantı testi yapıldı (401 ile doğrulandı — istek şekli doğru, yalnızca anahtar eksik)
 - Detaylar: `docs/SPRINT8.md`
 
-## Sprint 9 (öneri)
+## Sprint 9 — Hekim Doğrulaması ✅
 
-- Kurum bağlama akışının olgunlaştırılması (şu an review gönderiminde otomatik/doğrulanmamış workplace açılıyor) — SGK hizmet dökümü ile gerçek doğrulama, `is_verified_workplace` alanının gerçekten kullanılması
-- Doğrulama belgesi yükleme akışı (diploma/TTB no) — `doctors.is_verified`'ı gerçekten `true` yapacak süreç
+- PDF/JPG/PNG belge yükleme ve manuel yönetici incelemesi
+- Doğrulama başvurusu durumları, ret nedeni ve yeniden başvuru
+- Yalnızca doğrulanmış hekimlerin değerlendirmeleri görebilmesi/paylaşabilmesi
+- Özel Storage politikaları, dosya türü doğrulaması ve karar sonrası belge silme
+- KVKK odaklı belge saklama politikası ve hesap silme akışı
+
+## Sprint 10 — Yönetim ve Bildirimler ✅
+
+- Yönetici yetkilendirmeli `/admin` paneli
+- Hekim doğrulama başvurularını onaylama/reddetme
+- Süreli imzalı belge bağlantıları
+- Yeni üye, bekleyen başvuru ve geciken başvuru istatistikleri
+- Resend tabanlı yönetici bildirimleri ve cron uç noktası
+
+## Sprint 11 — Özel Soru-Cevap (kısmen tamamlandı)
+
+- Değerlendirme sahibine özel soru sorma, yanıtlama ve mini konuşma ✅
+- Soru-cevap bildirimlerinin genişletilmesi
+- Kötüye kullanım/mesaj moderasyonu ve oran sınırlama kontrollerinin olgunlaştırılması
+
+## Sprint 12 (öneri)
+
+- Kullanıcı raporları ve `pending` değerlendirmeler için moderasyon kuyruğu
+- Kurum bağlama akışının SGK hizmet dökümüyle doğrulanması
 - Katkı teşviki (ver-gör kilidi + ilk görev muafiyeti)
-
-## Sprint 10 (öneri)
-
-- Moderatör paneli (`reports` kuyruğu + Sprint 7'de biriken `pending` review'ları inceleme)
-
-## Sprint 11 (öneri)
-
-- Aktif hekimle anonim iletişim talebi ve sohbet
-- Bildirimler
 
 ## Sonraki (öneri, önceliklendirilmedi)
 
@@ -119,4 +132,4 @@
 - Konu sınıflandırmasının ileride bir LLM tabanlı sınıflandırıcıya geçirilmesi (mimari zaten buna izin veriyor)
 - Gerçek "workload score"/"education/academic" boyutları büyük veri hacminde full-text-search + tsvector'a taşınması (arama tarafı için)
 
-> Not: Sprint 9 ve sonrası için kapsam/sıralama bir öneri taslağıdır, bağlayıcı değildir.
+> Not: Sprint 12 ve sonrası için kapsam/sıralama bir öneri taslağıdır, bağlayıcı değildir.

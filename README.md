@@ -5,10 +5,10 @@ dayalı bir keşif ve karar destek platformu.
 
 ## Proje durumu
 
-**Sprint 1–8 tamamlandı.** Uygulama; hastane/klinik keşfi, akıllı arama,
-kimlik doğrulama, deneyim paylaşımı, itibar/moderasyon sistemi, klinik
-karşılaştırma ve isteğe bağlı AI destekli özetleri içeren, uçtan uca
-çalışan bir MVP durumundadır.
+**Sprint 1–10 kapsamı büyük ölçüde tamamlandı.** Uygulama; Türkiye geneli
+kamu hastanesi/klinik keşfi, akıllı arama, kimlik ve hekim doğrulaması,
+deneyim paylaşımı, itibar/moderasyon sistemi, klinik karşılaştırma, özel
+soru-cevap ve isteğe bağlı AI destekli özetleri içeren çalışan bir MVP'dir.
 
 | Sprint | Kapsam |
 |---|---|
@@ -20,6 +20,8 @@ karşılaştırma ve isteğe bağlı AI destekli özetleri içeren, uçtan uca
 | 6 | Klinik karşılaştırma, sıralama sayfaları, gelişmiş arama filtreleri, istatistikler |
 | 7 | İtibar sistemi, faydalı oy, raporlama, moderasyon, review düzenleme/silme |
 | 8 | AI Kariyer Danışmanı — klinik özeti, karşılaştırma özeti, kariyer eşleştirme, konu tespiti, AI dashboard |
+| 9 | Belge yüklemeli hekim doğrulaması, yalnızca doğrulanmış hekim erişimi, belge saklama/silme politikası |
+| 10 | Yönetim paneli, doğrulama kararları, üyelik istatistikleri ve yönetici e-posta bildirimleri |
 
 Ayrıca projenin yerel makinelerde güvenilir şekilde çalışmasını sağlayan
 bir dizi altyapı/bugfix turu yapıldı (bkz. `docs/BUGFIX_LOCAL_STARTUP.md`).
@@ -33,13 +35,18 @@ bir dizi altyapı/bugfix turu yapıldı (bkz. `docs/BUGFIX_LOCAL_STARTUP.md`).
 - Faydalı oy, yorum raporlama, otomatik moderasyon (çok raporlanan içerik gizlenir)
 - Klinik karşılaştırma (`/compare`) ve branşa göre sıralama (`/rankings`)
 - Kariyer eşleştirme anketi (`/career-match`) — deterministik uyum puanı
+- PDF/JPG/PNG belge yüklemeli hekim doğrulaması ve yönetici onay akışı
+- Yönetim paneli (`/admin`) ve güvenli, süreli belge görüntüleme bağlantıları
+- Deneyim sahibine özel soru sorma, yanıtlama ve mini konuşma akışı
+- Şehir/branş keşif sayfaları, sitemap, canonical ve yapılandırılmış SEO verileri
 - (Opsiyonel, `ANTHROPIC_API_KEY` ile) AI klinik özeti ve AI karşılaştırma özeti
 
-### Henüz yapılmayanlar (bilinçli olarak kapsam dışı, yol haritasında)
+### Henüz yapılmayanlar / sonraki geliştirmeler
 
-- Hekim kimlik doğrulama belgesi yükleme akışı (diploma/TTB no)
-- Moderatör paneli (raporlar şu an yalnızca otomatik eşiklerle işleniyor)
-- Aktif hekimle anonim iletişim/sohbet, bildirimler
+- Kullanıcıların raporladığı yorumlar için ayrı moderasyon kuyruğu ve karar ekranı
+- Özel soru-cevap bildirimlerinin genişletilmesi
+- Canlı Supabase ortamında otomatik uçtan uca testler
+- YHGM kontenjan verisinin otomatik alınması ve atama bildirimleri
 
 Detaylı yol haritası: [`docs/ROADMAP.md`](docs/ROADMAP.md)
 
@@ -59,6 +66,12 @@ npm run dev
 > `/`, `/login`, `/register`, `/search` gibi sayfalar açılır — yalnızca gerçek
 > Supabase verisi gösteren bölümler boş/"veri yok" durumunda görünür. Gerçek
 > işlevsellik için `.env.local` adımı gereklidir.
+
+Migration dosyalarının ad ve sürüm bütünlüğünü kontrol etmek için:
+
+```bash
+npm run check:migrations
+```
 
 ## Dokümantasyon
 

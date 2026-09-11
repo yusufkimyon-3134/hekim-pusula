@@ -12,7 +12,10 @@ import { formatScore } from "@/lib/format-score";
 import { safeQuery } from "@/lib/safe-query";
 
 export const metadata: Metadata = { alternates: { canonical: "https://www.hekimpusula.com.tr/" } };
-export const revalidate = 3600;
+// Header ve Supabase istemcisi oturum çerezlerini okuduğu için ana sayfa
+// isteğe göre render edilir. Bunu açıkça belirtmek, build sırasında Next.js'in
+// önce statik üretimi deneyip yanıltıcı bir DYNAMIC_SERVER_USAGE kaydı yazmasını önler.
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   let featuredCities: Awaited<ReturnType<HospitalRepository["listFeaturedCities"]>> = [];
