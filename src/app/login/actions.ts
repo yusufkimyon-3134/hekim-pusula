@@ -26,8 +26,18 @@ export async function login(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
 
   if (error) {
+    // Supabase'in İngilizce teknik hata metnini kullanıcıya göstermeyelim.
+    const message =
+      error.code === "invalid_credentials"
+        ? "E-posta veya şifre hatalı."
+        : error.code === "email_not_confirmed"
+          ? "E-posta adresini doğrulaman gerekiyor. Gelen kutunu kontrol et."
+          : error.status === 429
+            ? "Çok fazla giriş denemesi yapıldı. Biraz bekleyip tekrar dene."
+            : "Giriş yapılamadı. Lütfen biraz sonra tekrar dene.";
+
     redirect(
-      `/login?error=${encodeURIComponent(error.message)}&redirectTo=${encodeURIComponent(redirectTo)}`
+      `/login?error=${encodeURIComponent(message)}&redirectTo=${encodeURIComponent(redirectTo)}`
     );
   }
 
