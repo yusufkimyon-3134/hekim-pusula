@@ -25,5 +25,5 @@ const websiteStructuredData = { "@context": "https://schema.org", "@type": "WebS
 const organizationStructuredData = { "@context": "https://schema.org", "@type": "Organization", name: "Hekim Pusula", url: siteUrl, logo: `${siteUrl}/favicon.ico`, description: "Hekimlerin hastane ve klinik deneyimlerini paylaşabildiği tercih ve kurum keşif platformu." };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="tr" className="h-full antialiased"><body className="min-h-full flex flex-col"><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteStructuredData) }} /><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationStructuredData) }} /><Providers><SiteHeader /><main className="flex-1">{children}</main><SiteFooter /></Providers></body></html>;
+  return <html lang="tr" className="h-full antialiased"><body className="min-h-full flex flex-col"><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteStructuredData) }} /><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationStructuredData) }} /><Providers><SiteHeader /><main className="min-w-0 w-full flex-1">{children}</main><SiteFooter /></Providers></body></html>;
 }
