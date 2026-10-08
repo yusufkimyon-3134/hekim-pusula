@@ -55,8 +55,11 @@ export default async function HospitalDetailPage({ params }: { params: Promise<{
     name: hospital.name,
     address: { "@type": "PostalAddress", addressLocality: hospital.district, addressRegion: hospital.city, addressCountry: "TR" },
     url: `${siteUrl}/hospital/${id}`,
-    department: clinics.map((clinic) => ({ "@type": "MedicalClinic", name: clinic.branch, url: `${siteUrl}/clinic/${clinic.id}` })),
+    department: clinics.filter((clinic) => clinic.availabilityVerified).map((clinic) => ({ "@type": "MedicalClinic", name: clinic.branch, url: `${siteUrl}/clinic/${clinic.id}` })),
   };
+
+  const verifiedClinics = clinics.filter((clinic) => clinic.availabilityVerified);
+  const unverifiedClinics = clinics.filter((clinic) => !clinic.availabilityVerified);
 
   let isVerified = false;
   if (userData.user) {
@@ -77,14 +80,9 @@ export default async function HospitalDetailPage({ params }: { params: Promise<{
       </section>
 
       <section className="mt-8">
-        <SectionLabel>Klinikler ({clinics.length})</SectionLabel>
-        {clinics.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">Bu hastane için henüz kayıtlı klinik yok.</p>
-        ) : (
-          <div className="mt-3 space-y-3">
-            {clinics.map((clinic) => <ClinicCard key={clinic.id} branch={clinic.branch} href={`/clinic/${clinic.id}`} />)}
-          </div>
-        )}
+        <SectionLabel>Hizmet verdiği doğrulanmış klinikler ({verifiedClinics.length})</SectionLabel>
+        {verifiedClinics.length === 0 ? <p className="mt-4 text-sm leading-6 text-muted-foreground">Bu hastanenin güncel klinik listesi henüz doğrulanmadı. Aşağıdaki branş kayıtları, hastanede bu hizmetlerin bulunduğunu göstermez.</p> : <div className="mt-3 grid gap-3 sm:grid-cols-2">{verifiedClinics.map((clinic) => <ClinicCard key={clinic.id} branch={clinic.branch} href={`/clinic/${clinic.id}`} />)}</div>}
+        {unverifiedClinics.length > 0 && <details className="mt-6 rounded-lg border p-4"><summary className="cursor-pointer text-sm font-medium">Doğrulanmamış branş kayıtları ({unverifiedClinics.length})</summary><p className="mt-3 text-sm leading-6 text-muted-foreground">Bunlar deneyim paylaşımı için oluşturulmuş kayıtlardır. Güncel hizmet ve kadro bilgisi için hastanenin resmî duyurularını kontrol et.</p><div className="mt-4 grid gap-3 sm:grid-cols-2">{unverifiedClinics.map((clinic) => <ClinicCard key={clinic.id} branch={clinic.branch} href={`/clinic/${clinic.id}`} />)}</div></details>}
       </section>
 
       <div className="mt-8">

@@ -38,9 +38,10 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
       <Card className="w-full max-w-sm">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl">Hekim Pusula&apos;ya katıl</CardTitle>
-          <p className="text-sm text-muted-foreground">Hesabını birkaç saniyede oluştur.</p>
+          <p className="text-sm text-muted-foreground">Ücretsiz hesabını oluştur; ardından hekim doğrulamanı tamamla.</p>
         </CardHeader>
         <CardContent>
+          <div className="mb-5 rounded-md bg-muted/50 p-3 text-sm leading-6 text-muted-foreground"><p>E-posta adresini onayladıktan sonra profilinden diploma veya uzmanlık belgenle hekim doğrulamasına başvurabilirsin. Başvuru yönetici tarafından incelenir.</p><p className="mt-2">Yorumlar yalnızca doğrulanmış hekimlere görünür. Yorumunda takma adını gösterip göstermemeyi seçebilirsin; doğrulama belgen yorumlarda paylaşılmaz.</p></div>
           <form action={register} className="space-y-4">
             <input type="hidden" name="next" value={next} />
             {error && <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}

@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound, redirect, permanentRedirect } from "next/navigation";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +31,8 @@ export default async function EditReviewPage({
     clinicRepository.findByIdWithHospital(id),
     reviewRepository.findById(reviewId),
   ]);
+
+  if (clinic?.mergedIntoId) permanentRedirect(`/clinic/${clinic.mergedIntoId}/review/${reviewId}/edit`);
 
   if (!clinic || !review || review.clinicId !== id) {
     notFound();

@@ -23,6 +23,7 @@ export function SearchForm({
   defaultMinAcademic,
   defaultMaxMonthlyShifts,
   cities,
+  canUseAdvancedFilters = false,
 }: {
   defaultQuery?: string;
   defaultCity?: string;
@@ -32,6 +33,7 @@ export function SearchForm({
   defaultMinAcademic?: string;
   defaultMaxMonthlyShifts?: string;
   cities: CityCount[];
+  canUseAdvancedFilters?: boolean;
 }) {
   const hasAdvancedFilters = Boolean(
     defaultMinOverall || defaultMinEducation || defaultMinAcademic || defaultMaxMonthlyShifts
@@ -82,7 +84,7 @@ export function SearchForm({
         </NativeSelect>
       </div>
 
-      <details className="rounded-md border border-border" open={hasAdvancedFilters}>
+      {canUseAdvancedFilters && <details className="rounded-md border border-border" open={hasAdvancedFilters}>
         <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-muted-foreground">
           Gelişmiş filtreler (yalnızca klinikler için)
         </summary>
@@ -147,7 +149,7 @@ export function SearchForm({
             />
           </div>
         </div>
-      </details>
+      </details>}
     </form>
   );
 }

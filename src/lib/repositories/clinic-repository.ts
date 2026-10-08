@@ -21,6 +21,9 @@ function toClinic(row: ClinicRow): Clinic {
     id: row.id,
     hospitalId: row.hospital_id,
     branch: row.branch,
+    availabilityVerified: row.availability_verified,
+    availabilitySource: row.availability_source,
+    mergedIntoId: row.merged_into_id,
   };
 }
 
@@ -103,6 +106,7 @@ export class ClinicRepository {
       .from("clinics")
       .select("*")
       .eq("hospital_id", hospitalId)
+      .is("merged_into_id", null)
       .order("branch");
 
     if (error) {
@@ -226,6 +230,7 @@ export class ClinicRepository {
     const { data, error } = await this.client
       .from("clinics")
       .select("branch")
+      .is("merged_into_id", null)
       .order("branch");
 
     if (error) {

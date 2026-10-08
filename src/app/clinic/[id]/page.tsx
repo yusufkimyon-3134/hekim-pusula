@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { Lock, LogIn, UserPlus, Clock, PenLine } from "lucide-react";
 import { Container } from "@/components/layout/container";
 import { SectionLabel } from "@/components/section-label";
@@ -49,6 +49,7 @@ export default async function ClinicDetailPage({ params, searchParams }: { param
   const reviewRepository = new ReviewRepository(supabase);
   const [clinic, { data: userData }] = await Promise.all([clinicRepository.findByIdWithHospital(id), supabase.auth.getUser()]);
   if (!clinic) notFound();
+  if (clinic.mergedIntoId) permanentRedirect(`/clinic/${clinic.mergedIntoId}`);
 
   const structuredData = { "@context": "https://schema.org", "@type": "WebPage", name: `${clinic.hospital.name} ${clinic.branch} Yorumları ve Çalışma Koşulları`, description: `${clinic.branch} için hekim deneyimleri, nöbet, eğitim ve çalışma koşulları.`, url: `${siteUrl}/clinic/${id}`, about: { "@type": "Hospital", name: clinic.hospital.name, address: { "@type": "PostalAddress", addressLocality: clinic.hospital.district, addressRegion: clinic.hospital.city, addressCountry: "TR" } } };
 
@@ -85,7 +86,9 @@ export default async function ClinicDetailPage({ params, searchParams }: { param
   return <Container className="py-12 sm:py-16">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }} />
     <div className="mx-auto max-w-2xl space-y-14">
-      <ClinicHero branch={clinic.branch} hospital={clinic.hospital} /><ClinicIntro />
+      <ClinicHero branch={clinic.branch} hospital={clinic.hospital} />
+      {!clinic.availabilityVerified && <p className="rounded-lg border border-dashed p-4 text-sm leading-6 text-muted-foreground">Bu branşın hastanede güncel olarak hizmet verdiği henüz doğrulanmadı. Bu sayfa bir branş değerlendirme kaydıdır; güncel klinik veya kadro listesi değildir.</p>}
+      <ClinicIntro />
       {!userData.user ? <>
         <Card className="border-primary/30 bg-primary/5"><CardContent className="flex flex-col items-center gap-4 py-8 text-center"><div className="flex size-12 items-center justify-center rounded-full bg-primary/10"><PenLine className="size-5 text-primary" /></div><div className="space-y-1.5"><p className="text-lg font-semibold">Bu klinikte çalıştın mı?</p><p className="mx-auto max-w-md text-sm text-muted-foreground">Nöbet, eğitim, yönetim, teşvik ve çalışma ortamı deneyimini diğer hekimlerle paylaş. Deneyimin, tercih yapacak bir meslektaşına yardımcı olabilir.</p></div><Button asChild className="w-full max-w-xs gap-2"><Link href={`/register?next=${encodeURIComponent(targetReview)}`}><PenLine className="size-4" />Deneyimimi paylaş</Link></Button><p className="text-xs text-muted-foreground">Üyelik ücretsiz. Yorum içeriği yalnızca doğrulanmış hekimlere gösterilir.</p></CardContent></Card>
         <Card className="border-dashed"><CardContent className="flex flex-col items-center gap-4 py-8 text-center"><div className="flex size-12 items-center justify-center rounded-full bg-muted"><Lock className="size-5 text-muted-foreground" /></div><div className="space-y-1.5"><p className="font-medium">Hekim deneyimleri doğrulanmış hekimlere özeldir</p><p className="mx-auto max-w-md text-sm text-muted-foreground">Bu klinikteki değerlendirmeleri görmek için ücretsiz hesap oluştur ve hekim doğrulamanı tamamla.</p></div><div className="flex flex-wrap justify-center gap-2"><Button asChild variant="outline" className="gap-2"><Link href={`/login?redirectTo=${encodeURIComponent(`/clinic/${id}`)}`}><LogIn className="size-4" />Giriş yap</Link></Button><Button asChild variant="outline" className="gap-2"><Link href={`/register?next=${encodeURIComponent(`/clinic/${id}`)}`}><UserPlus className="size-4" />Kayıt ol</Link></Button></div></CardContent></Card>

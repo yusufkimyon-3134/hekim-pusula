@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Info, MessageCircle, ShieldCheck } from "lucide-react";
-import { notFound, redirect } from "next/navigation";
+import { notFound, redirect, permanentRedirect } from "next/navigation";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,6 +28,8 @@ export default async function AskReviewAuthorPage({
     supabase.from("reviews").select("id, comment, monthly_shifts, daily_patients, service_patients").eq("id", reviewId).eq("clinic_id", clinicId).maybeSingle(),
     new ClinicRepository(supabase).findByIdWithHospital(clinicId),
   ]);
+
+  if (clinic?.mergedIntoId) permanentRedirect(`/clinic/${clinic.mergedIntoId}/question/${reviewId}`);
 
   if (!review || !clinic) notFound();
 

@@ -20,7 +20,7 @@ export type {
 } from "./database";
 
 export interface Hospital { id: string; name: string; city: string; district: string; hospitalType: HospitalType; }
-export interface Clinic { id: string; hospitalId: string; branch: string; }
+export interface Clinic { id: string; hospitalId: string; branch: string; availabilityVerified: boolean; availabilitySource: string | null; mergedIntoId: string | null; }
 export interface ClinicWithHospital extends Clinic { hospital: Hospital; }
 export interface ClinicSearchResult { clinicId: string; branch: string; hospitalId: string; hospitalName: string; hospitalCity: string; hospitalDistrict: string; hospitalType: HospitalType; }
 export interface CityCount { city: string; hospitalCount: number; }

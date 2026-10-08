@@ -67,7 +67,7 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
           </div>
         </section>
 
-        {branches.length > 0 && <section className="space-y-4"><div><h2 className="text-xl font-semibold">{city} branşları</h2><p className="mt-1 text-sm text-muted-foreground">Branşa göre klinikleri ve çalışma deneyimlerini incele.</p></div><div className="flex flex-wrap gap-2">{branches.slice(0, 40).map((branch) => <Button key={branch} asChild variant="outline" size="sm"><Link href={`/brans/${encodeURIComponent(branch)}?city=${encodeURIComponent(city)}`}>{branch}</Link></Button>)}</div></section>}
+        {branches.length > 0 && <section className="space-y-4"><div><h2 className="text-xl font-semibold">{city} branşları</h2><p className="mt-1 text-sm text-muted-foreground">Branşa göre değerlendirme kayıtlarını incele. Bu kayıtlar güncel hizmet veya kadro listesi değildir.</p></div><div className="flex flex-wrap gap-2">{branches.slice(0, 40).map((branch) => <Button key={branch} asChild variant="outline" size="sm"><Link href={`/brans/${encodeURIComponent(branch)}?city=${encodeURIComponent(city)}`}>{branch}</Link></Button>)}</div></section>}
 
         <section className="rounded-lg border bg-muted/30 p-5"><h2 className="font-semibold">{city} için gerçek hekim deneyimleri</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Bir kurumda çalıştıysan ilgili klinik sayfasından deneyimini paylaşabilirsin. Yorumların içeriği yalnızca doğrulanmış hekimlere gösterilir; kurum ve klinik sayfaları ise tercih araştırması yapan hekimlerin Google üzerinden keşfedebilmesi için herkese açıktır.</p></section>
       </div>
