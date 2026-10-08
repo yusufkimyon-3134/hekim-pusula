@@ -27,7 +27,7 @@ export async function GET() {
     const supabase = await createClient();
     const [{ data: hospitals, error: hospitalsError }, { data: clinics, error: clinicsError }] = await Promise.all([
       supabase.from("hospitals").select("id, city").order("id"),
-      supabase.from("clinics").select("id, branch").order("id"),
+      supabase.from("clinics").select("id, branch").is("merged_into_id", null).order("id"),
     ]);
 
     if (!hospitalsError) {

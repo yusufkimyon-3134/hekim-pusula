@@ -71,7 +71,7 @@ export default async function SearchPage({
     isVerified = doctor?.isVerified === true;
   }
 
-  const hasAdvancedFilters = Boolean(
+  const hasAdvancedFilters = isVerified && Boolean(
     minOverall || minEducation || minAcademic || maxMonthlyShifts
   );
 
@@ -80,10 +80,10 @@ export default async function SearchPage({
   // hastanelerin kendisinin bir "puanı" yok, puanlar kliniğe ait.
   const clinicSearchArgs = {
     ...hospitalSearchArgs,
-    minOverall: parseNumberParam(minOverall),
-    minEducation: parseNumberParam(minEducation),
-    minAcademic: parseNumberParam(minAcademic),
-    maxMonthlyShifts: parseNumberParam(maxMonthlyShifts),
+    minOverall: isVerified ? parseNumberParam(minOverall) : undefined,
+    minEducation: isVerified ? parseNumberParam(minEducation) : undefined,
+    minAcademic: isVerified ? parseNumberParam(minAcademic) : undefined,
+    maxMonthlyShifts: isVerified ? parseNumberParam(maxMonthlyShifts) : undefined,
   };
 
   // Gelişmiş filtre varsa hastane sonuçlarını göstermenin anlamı yok
@@ -167,6 +167,7 @@ export default async function SearchPage({
               defaultMinAcademic={minAcademic}
               defaultMaxMonthlyShifts={maxMonthlyShifts}
               cities={cities}
+              canUseAdvancedFilters={isVerified}
             />
           </div>
         </>
@@ -270,7 +271,8 @@ export default async function SearchPage({
 
       {clinics.length > 0 && (
         <div className="mt-8">
-          <SectionLabel>Klinikler ({clinics.length})</SectionLabel>
+          <SectionLabel>Branş kayıtları ({clinics.length})</SectionLabel>
+          <p className="mt-2 text-sm text-muted-foreground">Branş kayıtları, hastanelerin güncel hizmet veya kadro listesi değildir. Doğrulama bilgisi klinik sayfasında gösterilir.</p>
           <div className="mt-3 space-y-3">
             {clinics.map((clinic) => {
               const stats = clinicStatsMap[clinic.clinicId];

@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound, redirect, permanentRedirect } from "next/navigation";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,6 +50,8 @@ export default async function ReviewPage({
   if (!clinic) {
     notFound();
   }
+
+  if (clinic.mergedIntoId) permanentRedirect(`/clinic/${clinic.mergedIntoId}/review`);
 
   // Sprint 7 — Bölüm 5: aynı klinik için ikinci bir yorum eklemeyi
   // engellemek yerine (ki bu zaten DB seviyesinde de reddedilirdi),

@@ -4,26 +4,7 @@ import { getEnv, isEnvConfigured } from "@/lib/env";
 
 let warnedOnce = false;
 
-/**
- * Erişim katmanları:
- * - "public": giriş yapılmamış olsa bile herkes görebilir.
- * - "authenticated": herhangi bir giriş yapmış kullanıcı (doğrulama
- *   durumu ne olursa olsun — pending/rejected/hiç başvurmamış dahil).
- * - "verified": yalnızca `doctors.is_verified = true` olan hekimler.
- *
- * Listelenmemiş HERHANGİ bir sayfa (örn. `/compare`, `/rankings`,
- * `/career-match`) varsayılan olarak "verified" kabul edilir — bu
- * bilinçli bir tercih: bu sayfalar da hastane/klinik/puan verisi
- * gösteriyor, ve talimattaki "giriş yapmamış kişi SADECE [şu sayfaları]
- * görebilsin" (madde 1) ifadesi kapalı bir liste (allowlist) olarak
- * okundu — açıkça izin verilmeyen her şey varsayılan olarak kısıtlı.
- * `/questions` şu an projede hiç yok — listede olması zararsız, sayfa
- * ileride eklenirse otomatik korunur.
- *
- * NOT: Yorum YAZMA yetkisi (submit_review) burada değil — o kontrol
- * zaten SQL fonksiyonunda VE review sayfalarında var, dokunulmadı. Bu
- * yalnızca "bu sayfaları GÖRME" iznini kapsıyor.
- */
+/** Discovery is public; review content and writing remain verified-only. */
 type AccessTier = "public" | "authenticated" | "verified";
 
 const PUBLIC_EXACT_PATHS = [
@@ -33,6 +14,7 @@ const PUBLIC_EXACT_PATHS = [
   "/forgot-password",
   "/reset-password",
   "/account-deleted",
+  "/search",
 ];
 const PUBLIC_PREFIXES = [
   "/auth/callback",
@@ -44,7 +26,7 @@ const PUBLIC_PREFIXES = [
   // Misafir kullanıcı, sayfaya hiç ULAŞAMAMAK yerine, "giriş yap/kayıt
   // ol" bilgi kartını GÖRMELİ — bu yüzden middleware burada artık
   // engellemiyor.
-  "/hospital",
+
   // Ana sayfadaki canlı hastane/klinik önerileri ziyaretçilere de açık olmalı.
   // Yorum içeriği bu route üzerinden dönmez; yalnızca keşif verisi döner.
   "/api/search-suggestions",
@@ -58,6 +40,7 @@ const AUTHENTICATED_PREFIXES = ["/profile"];
 
 function getAccessTier(pathname: string): AccessTier {
   if (
+    /^\/(?:hospital|clinic|sehir|brans)\/[^/]+$/.test(pathname) ||
     PUBLIC_EXACT_PATHS.includes(pathname) ||
     PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))
   ) {

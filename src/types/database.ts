@@ -61,6 +61,9 @@ export type Database = {
       }
       clinics: {
         Row: {
+          availability_verified: boolean
+          availability_source: string | null
+          merged_into_id: string | null
           branch: string
           created_at: string
           hospital_id: string
@@ -68,6 +71,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          availability_verified?: boolean
+          availability_source?: string | null
+          merged_into_id?: string | null
           branch: string
           created_at?: string
           hospital_id: string
@@ -75,6 +81,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          availability_verified?: boolean
+          availability_source?: string | null
+          merged_into_id?: string | null
           branch?: string
           created_at?: string
           hospital_id?: string
