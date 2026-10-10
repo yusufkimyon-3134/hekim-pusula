@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Container } from "@/components/layout/container";
 import { Input } from "@/components/ui/input";
@@ -58,6 +59,25 @@ export default async function ProfilePage({
     safeQuery(() => verificationRepository.findLatestRequest(userData.user.id), null),
   ]);
 
+
+  // Sadece oturum sahibinin yorumları; doktor-işyeri ilişkisi üzerinden filtrelenir.
+  const myReviews = await safeQuery(async () => {
+    const { data: workplaces, error: workplaceError } = await supabase
+      .from("doctor_workplaces")
+      .select("id")
+      .eq("doctor_id", userData.user.id);
+    if (workplaceError) throw workplaceError;
+    const ids = (workplaces ?? []).map((item) => item.id);
+    if (!ids.length) return [];
+    const { data, error: reviewsError } = await supabase
+      .from("reviews")
+      .select("id, clinic_id, comment, created_at")
+      .in("doctor_workplace_id", ids)
+      .order("created_at", { ascending: false });
+    if (reviewsError) throw reviewsError;
+    return data ?? [];
+  }, []);
+
   return (
     <Container className="py-12">
       <div className="mx-auto max-w-lg space-y-6">
@@ -87,7 +107,7 @@ export default async function ProfilePage({
                   <p className="font-mono text-lg font-semibold">
                     {reputation.reviewCount}
                   </p>
-                  <p className="text-muted-foreground">Yazılan yorum</p>
+                  <a href="#yorumlarim" className="text-primary underline-offset-4 hover:underline">Yazılan yorum ↓</a>
                 </div>
                 <div>
                   <p className="font-mono text-lg font-semibold">
@@ -105,6 +125,25 @@ export default async function ProfilePage({
               <p className="text-center text-xs text-muted-foreground">
                 {formatMemberSince(reputation.memberSince)} tarihinden beri üye
               </p>
+            </CardContent>
+          </Card>
+        )}
+
+
+        {doctor?.isVerified && (
+          <Card id="yorumlarim" className="scroll-mt-6">
+            <CardHeader><CardTitle className="text-base">Yorumlarım</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+              {myReviews.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Henüz yazdığın bir değerlendirme bulunmuyor.</p>
+              ) : myReviews.map((review) => (
+                <Link key={review.id} href={`/clinic/${review.clinic_id}#review-${review.id}`}
+                  className="block rounded-md border p-3 transition-colors hover:border-primary/50 hover:bg-accent/40">
+                  <p className="text-sm font-medium">Yorumunu görüntüle →</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{new Date(review.created_at).toLocaleDateString("tr-TR")}</p>
+                  {review.comment && <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{review.comment}</p>}
+                </Link>
+              ))}
             </CardContent>
           </Card>
         )}
