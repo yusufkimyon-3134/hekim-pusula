@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 import { Building2, MapPin } from "lucide-react";
 import { Container } from "@/components/layout/container";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,7 +26,8 @@ async function getCityData(city: string) {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ city: string }> }): Promise<Metadata> {
-  const { city } = await params;
+  const { city: rawCity } = await params;
+  const city = decodeURIComponent(rawCity);
   const { hospitals } = await getCityData(city);
   if (hospitals.length === 0) return { title: "Şehir bulunamadı", robots: { index: false, follow: false } };
   const title = `${city} Hastane Yorumları ve Doktor Çalışma Koşulları`;
@@ -36,9 +37,10 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
 }
 
 export default async function CityPage({ params }: { params: Promise<{ city: string }> }) {
-  const { city } = await params;
+  const { city: rawCity } = await params;
+  const city = decodeURIComponent(rawCity);
   const { hospitals, clinics } = await getCityData(city);
-  if (hospitals.length === 0) notFound();
+  if (hospitals.length === 0) permanentRedirect(`/search?city=${encodeURIComponent(city)}`);
   const branches = Array.from(new Set(clinics.map((clinic) => clinic.branch))).sort((a, b) => a.localeCompare(b, "tr"));
 
   const structuredData = {
