@@ -6,20 +6,23 @@ import { Container } from "@/components/layout/container";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
-import { HospitalRepository } from "@/lib/repositories/hospital-repository";
 import { ClinicRepository } from "@/lib/repositories/clinic-repository";
 
 const siteUrl = "https://www.hekimpusula.com.tr";
 
 async function getCityData(city: string) {
   const supabase = await createClient();
-  const hospitalRepository = new HospitalRepository(supabase);
   const clinicRepository = new ClinicRepository(supabase);
-  const [hospitals, clinics] = await Promise.all([
-    hospitalRepository.search({ city }),
-    clinicRepository.search({ city }),
-  ]);
-  return { hospitals, clinics };
+  const { data: hospitals, error } = await supabase
+    .from("hospitals")
+    .select("id, name, city, district")
+    .eq("city", city)
+    .order("name");
+  if (error) throw new Error("Şehir hastaneleri getirilemedi: " + error.message);
+  let clinics: Awaited<ReturnType<ClinicRepository["search"]>> = [];
+  try { clinics = await clinicRepository.search({ city }); }
+  catch (error) { console.error("[CityPage] Branşlar yüklenemedi:", error); }
+  return { hospitals: hospitals ?? [], clinics };
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ city: string }> }): Promise<Metadata> {
