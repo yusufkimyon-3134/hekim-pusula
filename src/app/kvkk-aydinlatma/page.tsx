@@ -39,10 +39,10 @@ export default function KvkkAydinlatmaPage() {
           <p className="text-sm leading-relaxed text-muted-foreground">
             İletişim:{" "}
             <a
-              href="mailto:yusufkimyon@gmail.com"
+              href="mailto:hekimpusula@gmail.com"
               className="text-foreground underline-offset-2 hover:underline"
             >
-              yusufkimyon@gmail.com
+              hekimpusula@gmail.com
             </a>
           </p>
         </section>
@@ -105,10 +105,10 @@ export default function KvkkAydinlatmaPage() {
             düzeltilmesini isteme ve silinmesini talep etme haklarına
             sahipsiniz. Bu haklarınızı kullanmak için{" "}
             <a
-              href="mailto:yusufkimyon@gmail.com"
+              href="mailto:hekimpusula@gmail.com"
               className="text-foreground underline-offset-2 hover:underline"
             >
-              yusufkimyon@gmail.com
+              hekimpusula@gmail.com
             </a>{" "}
             adresine başvurabilirsiniz.
           </p>
