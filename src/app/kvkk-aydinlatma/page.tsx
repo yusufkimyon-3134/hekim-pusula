@@ -56,8 +56,10 @@ export default function KvkkAydinlatmaPage() {
             <li>İsteğe bağlı olarak paylaştığınız kurum/çalışma yeri bilgisi</li>
             <li>Platformda paylaştığınız yorumlar ve değerlendirmeler</li>
             <li>
-              Hekim doğrulaması kapsamında yüklediğiniz diploma/uzmanlık
-              belgesi
+              <strong>Hekim doğrulaması için geçici olarak yüklenen diploma veya uzmanlık belgesi:</strong>{" "}
+              Yalnızca hekimlik durumunun doğrulanması amacıyla alınır.
+              Doğrulama başvurusu onaylandığında veya reddedildiğinde belgenin
+              otomatik silinmesi başlatılır; belge görüntüsü kalıcı olarak saklanmaz.
             </li>
             <li>
               Teknik güvenlik kayıtları (örn. oturum açma zamanı, temel
