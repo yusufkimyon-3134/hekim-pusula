@@ -70,6 +70,11 @@ export default async function ClinicDetailPage({ params, searchParams }: { param
   const targetReview = `/clinic/${id}/review`;
   const reviewHref = !userData.user ? `/register?next=${encodeURIComponent(targetReview)}` : ownReviewId ? `/clinic/${id}/review/${ownReviewId}/edit` : targetReview;
   const hasReviews = reviews.length > 0;
+  const latestVerifiedAt = reviews.reduce<Date | null>((latest, review) => {
+    const date = new Date(review.lastVerifiedAt);
+    if (Number.isNaN(date.getTime())) return latest;
+    return !latest || date > latest ? date : latest;
+  }, null);
   const canWriteReview = Boolean(userData.user) && isVerified;
   let aiSummary: ClinicSummaryResult | null = null;
   let aiUnavailableReason: string | undefined;
@@ -94,6 +99,11 @@ export default async function ClinicDetailPage({ params, searchParams }: { param
         <Card className="border-dashed"><CardContent className="flex flex-col items-center gap-4 py-8 text-center"><div className="flex size-12 items-center justify-center rounded-full bg-muted"><Lock className="size-5 text-muted-foreground" /></div><div className="space-y-1.5"><p className="font-medium">Hekim deneyimleri doğrulanmış hekimlere özeldir</p><p className="mx-auto max-w-md text-sm text-muted-foreground">Bu klinikteki değerlendirmeleri görmek için ücretsiz hesap oluştur ve hekim doğrulamanı tamamla.</p></div><div className="flex flex-wrap justify-center gap-2"><Button asChild variant="outline" className="gap-2"><Link prefetch={false} href={`/login?redirectTo=${encodeURIComponent(`/clinic/${id}`)}`}><LogIn className="size-4" />Giriş yap</Link></Button><Button asChild variant="outline" className="gap-2"><Link prefetch={false} href={`/register?next=${encodeURIComponent(`/clinic/${id}`)}`}><UserPlus className="size-4" />Kayıt ol</Link></Button></div></CardContent></Card>
       </> : !isVerified ? <><div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3"><p className="text-sm font-medium text-blue-900">Hekim doğrulaması gerekli</p><p className="mt-1 text-xs text-blue-800">Deneyimleri görmek ve paylaşmak için hekim doğrulamanı tamamla.</p></div><Card className="border-dashed"><CardContent className="flex flex-col items-center gap-4 py-10 text-center"><div className="flex size-12 items-center justify-center rounded-full bg-muted"><Clock className="size-5 text-muted-foreground" /></div><div className="space-y-1.5"><p className="font-medium">Hekim doğrulaması gerekiyor</p><p className="mx-auto max-w-md text-sm text-muted-foreground">Doğrulama tamamlandığında gerçek hekim deneyimlerine erişebilir ve kendi deneyimini paylaşabilirsin.</p></div><Button asChild variant="outline"><Link prefetch={false} href="/profile">Doğrulama durumumu gör</Link></Button></CardContent></Card></> : <>
         {(reported || deleted || shared) && <p className="rounded-md bg-accent px-3 py-2 text-sm text-accent-foreground">{reported && "Raporun alındı, teşekkürler."}{deleted && "Değerlendirmen silindi."}{shared && "Değerlendirmen paylaşıldı, teşekkürler."}</p>}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border bg-muted/30 px-4 py-3 text-sm" aria-label="Yorum sayısı ve son teyit tarihi">
+          <span className="font-medium">{reviews.length} yorum</span>
+          <span className="text-muted-foreground">Son yorum teyidi: {latestVerifiedAt ? <time dateTime={latestVerifiedAt.toISOString()}>{new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Istanbul" }).format(latestVerifiedAt)}</time> : "Henüz yok"}</span>
+          {hasReviews && <p className="w-full text-xs text-muted-foreground">Tarih, en son teyit edilen yoruma aittir; tüm yorumların güncelliğini göstermez.</p>}
+        </div>
         {hasReviews && <section><AiClinicSummaryCard result={aiSummary} unavailableReason={aiUnavailableReason} /></section>}
         <section className="space-y-4"><SectionLabel>İstatistikler</SectionLabel>{hasReviews && stats ? <ClinicStatsSummary stats={stats} /> : <UpcomingInfoGrid />}</section>
         {insights.length > 0 && <section className="space-y-4"><SectionLabel>İçgörüler</SectionLabel><InsightCards insights={insights} /></section>}
