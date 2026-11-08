@@ -26,7 +26,7 @@ export function RankingRow({
       </span>
 
       <div className="min-w-0 flex-1">
-        <Link
+        <Link prefetch={false}
           href={`/clinic/${ranking.clinicId}`}
           className="truncate text-sm font-medium hover:underline underline-offset-2"
         >

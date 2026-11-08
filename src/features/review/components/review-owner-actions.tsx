@@ -11,7 +11,7 @@ export function ReviewOwnerActions({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <Link
+      <Link prefetch={false}
         href={`/clinic/${clinicId}/review/${reviewId}/edit`}
         className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
       >

@@ -29,7 +29,7 @@ export default async function RankingsIndexPage() {
       ) : (
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
           {branches.map((branch) => (
-            <Link key={branch} href={`/rankings/${encodeURIComponent(branch)}`}>
+            <Link prefetch={false} key={branch} href={`/rankings/${encodeURIComponent(branch)}`}>
               <Card className="transition-colors hover:border-primary/40">
                 <CardContent className="py-4">
                   <p className="font-medium">En iyi {branch} klinikleri</p>

@@ -24,7 +24,7 @@ export function SiteHeaderNav() {
       {navItems
         .filter((item) => !(item.href === "/search" && pathname === "/"))
         .map((item) => (
-          <Link
+          <Link prefetch={false}
             key={item.href}
             href={item.href}
             className="opacity-90 transition-opacity hover:opacity-100"

@@ -28,7 +28,7 @@ export function DashboardRow({
   value: string;
 }) {
   return (
-    <Link
+    <Link prefetch={false}
       href={href}
       className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-3 text-sm transition-colors hover:border-primary/40"
     >

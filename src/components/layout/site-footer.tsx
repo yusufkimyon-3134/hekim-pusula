@@ -8,10 +8,10 @@ export function SiteFooter() {
         <span>© {new Date().getFullYear()} Hekim Pusula</span>
         <nav className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <span className="hidden sm:inline">Doğru kurumu, gerçek deneyimlerle keşfet.</span>
-          <Link href="/kvkk-aydinlatma" className="underline-offset-2 hover:underline">
+          <Link prefetch={false} href="/kvkk-aydinlatma" className="underline-offset-2 hover:underline">
             KVKK Aydınlatma Metni
           </Link>
-          <Link href="/kullanim-kosullari" className="underline-offset-2 hover:underline">
+          <Link prefetch={false} href="/kullanim-kosullari" className="underline-offset-2 hover:underline">
             Kullanım Koşulları
           </Link>
         </nav>

@@ -18,7 +18,7 @@ export function HospitalCard({
   isVerified,
 }: HospitalCardProps) {
   return (
-    <Link href={`/hospital/${hospital.id}`} className="block">
+    <Link prefetch={false} href={`/hospital/${hospital.id}`} className="block">
       <Card className="transition-colors hover:border-primary/40">
         <CardHeader className="flex-row items-start justify-between gap-3 space-y-0">
           <div className="flex-1">

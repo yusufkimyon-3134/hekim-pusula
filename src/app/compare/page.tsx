@@ -26,7 +26,7 @@ export default async function ComparePage({
         <h1 className="text-2xl font-semibold tracking-tight">Karşılaştır</h1>
         <p className="mx-auto mt-3 max-w-sm text-sm text-muted-foreground">
           Karşılaştırma için tam olarak iki klinik seçmelisin. Bir{" "}
-          <Link href="/rankings" className="underline underline-offset-2">
+          <Link prefetch={false} href="/rankings" className="underline underline-offset-2">
             sıralama sayfasından
           </Link>{" "}
           iki klinik işaretleyip &ldquo;Seçilenleri karşılaştır&rdquo;a

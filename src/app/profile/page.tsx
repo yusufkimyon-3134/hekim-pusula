@@ -137,7 +137,7 @@ export default async function ProfilePage({
               {myReviews.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Henüz yazdığın bir değerlendirme bulunmuyor.</p>
               ) : myReviews.map((review) => (
-                <Link key={review.id} href={`/clinic/${review.clinic_id}#review-${review.id}`}
+                <Link prefetch={false} key={review.id} href={`/clinic/${review.clinic_id}#review-${review.id}`}
                   className="block rounded-md border p-3 transition-colors hover:border-primary/50 hover:bg-accent/40">
                   <p className="text-sm font-medium">Yorumunu görüntüle →</p>
                   <p className="mt-1 text-xs text-muted-foreground">{new Date(review.created_at).toLocaleDateString("tr-TR")}</p>

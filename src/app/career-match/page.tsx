@@ -91,7 +91,7 @@ export default async function CareerMatchPage({
                 {params.specialty} için {results.length} öneri
               </p>
               <Button asChild variant="outline" size="sm">
-                <Link href="/career-match">Yeniden doldur</Link>
+                <Link prefetch={false} href="/career-match">Yeniden doldur</Link>
               </Button>
             </div>
 

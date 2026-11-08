@@ -81,7 +81,7 @@ export default function ResetPasswordPage() {
               <p className="font-medium">Şifren başarıyla yenilendi</p>
               <p className="text-sm text-muted-foreground">Yeni şifrenle Hekim Pusula hesabına giriş yapabilirsin.</p>
             </div>
-            <Button asChild className="mt-2 w-full"><Link href="/login?passwordReset=1">Giriş yap</Link></Button>
+            <Button asChild className="mt-2 w-full"><Link prefetch={false} href="/login?passwordReset=1">Giriş yap</Link></Button>
           </CardContent>
         </Card>
       </Container>
@@ -100,7 +100,7 @@ export default function ResetPasswordPage() {
             <div className="space-y-4 text-center">
               <p className="text-sm text-muted-foreground">Güvenli şifre yenileme bağlantısı doğrulanıyor…</p>
               <p className="text-xs text-muted-foreground">Bu ekran uzun süre değişmezse bağlantının süresi dolmuş olabilir.</p>
-              <Button asChild variant="outline" className="w-full"><Link href="/forgot-password">Yeni bağlantı iste</Link></Button>
+              <Button asChild variant="outline" className="w-full"><Link prefetch={false} href="/forgot-password">Yeni bağlantı iste</Link></Button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">

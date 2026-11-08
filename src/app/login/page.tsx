@@ -61,7 +61,7 @@ export default async function LoginPage({
               <Label htmlFor="password">Şifre</Label>
               <Input id="password" name="password" type="password" autoComplete="current-password" required />
               <div className="flex justify-end">
-                <Link href="/forgot-password" className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
+                <Link prefetch={false} href="/forgot-password" className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
                   Şifremi unuttum
                 </Link>
               </div>
@@ -74,7 +74,7 @@ export default async function LoginPage({
 
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Hesabın yok mu?{" "}
-            <Link href="/register" className="text-foreground underline-offset-2 hover:underline">
+            <Link prefetch={false} href="/register" className="text-foreground underline-offset-2 hover:underline">
               Kayıt ol
             </Link>
           </p>

@@ -22,26 +22,26 @@ export async function SiteHeader() {
   return (
     <header className="border-b border-border bg-primary text-primary-foreground">
       <Container className="flex h-16 min-w-0 items-center justify-between gap-3">
-        <Link href="/" className="flex min-w-0 items-center gap-2 font-semibold">
+        <Link prefetch={false} href="/" className="flex min-w-0 items-center gap-2 font-semibold">
           <LogoMark className="h-6 w-6 text-[color:var(--color-ring)]" />
           <span className="truncate">Hekim Pusula</span>
         </Link>
 
         <nav aria-label="Ana menü" className="hidden items-center gap-6 text-sm md:flex">
-          <Link href="/" className="opacity-90 transition-opacity hover:opacity-100">
+          <Link prefetch={false} href="/" className="opacity-90 transition-opacity hover:opacity-100">
             Ana sayfa
           </Link>
 
           {authUser ? (
             <>
-              <Link href="/questions" className="opacity-90 transition-opacity hover:opacity-100">
+              <Link prefetch={false} href="/questions" className="opacity-90 transition-opacity hover:opacity-100">
                 Sorularım
               </Link>
-              <Link href="/profile" className="opacity-90 transition-opacity hover:opacity-100">
+              <Link prefetch={false} href="/profile" className="opacity-90 transition-opacity hover:opacity-100">
                 Profilim
               </Link>
               {isAdmin && (
-                <Link
+                <Link prefetch={false}
                   href="/admin"
                   className="flex items-center gap-1.5 opacity-90 transition-opacity hover:opacity-100"
                 >
@@ -64,10 +64,10 @@ export async function SiteHeader() {
             </>
           ) : (
             <>
-              <Link href="/login" className="opacity-90 transition-opacity hover:opacity-100">
+              <Link prefetch={false} href="/login" className="opacity-90 transition-opacity hover:opacity-100">
                 Giriş yap
               </Link>
-              <Link
+              <Link prefetch={false}
                 href="/register"
                 className="rounded-md bg-[color:var(--color-ring)] px-3 py-1.5 font-medium text-primary transition-opacity hover:opacity-90"
               >
@@ -86,19 +86,19 @@ export async function SiteHeader() {
             aria-label="Mobil ana menü"
             className="absolute right-0 top-[calc(100%+0.5rem)] z-50 flex min-w-52 flex-col overflow-hidden rounded-lg border border-border bg-background py-1 text-sm text-foreground shadow-xl"
           >
-            <Link href="/" className="px-4 py-3 transition-colors hover:bg-accent">
+            <Link prefetch={false} href="/" className="px-4 py-3 transition-colors hover:bg-accent">
               Ana sayfa
             </Link>
             {authUser ? (
               <>
-                <Link href="/questions" className="px-4 py-3 transition-colors hover:bg-accent">
+                <Link prefetch={false} href="/questions" className="px-4 py-3 transition-colors hover:bg-accent">
                   Sorularım
                 </Link>
-                <Link href="/profile" className="px-4 py-3 transition-colors hover:bg-accent">
+                <Link prefetch={false} href="/profile" className="px-4 py-3 transition-colors hover:bg-accent">
                   Profilim
                 </Link>
                 {isAdmin && (
-                  <Link
+                  <Link prefetch={false}
                     href="/admin"
                     className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-accent"
                   >
@@ -121,10 +121,10 @@ export async function SiteHeader() {
               </>
             ) : (
               <>
-                <Link href="/login" className="px-4 py-3 transition-colors hover:bg-accent">
+                <Link prefetch={false} href="/login" className="px-4 py-3 transition-colors hover:bg-accent">
                   Giriş yap
                 </Link>
-                <Link href="/register" className="px-4 py-3 font-medium transition-colors hover:bg-accent">
+                <Link prefetch={false} href="/register" className="px-4 py-3 font-medium transition-colors hover:bg-accent">
                   Kayıt ol
                 </Link>
               </>

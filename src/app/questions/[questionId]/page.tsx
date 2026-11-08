@@ -76,7 +76,7 @@ export default async function QuestionThreadPage({ params, searchParams }: { par
   ];
 
   return <Container className="py-10 sm:py-14"><main className="mx-auto max-w-2xl space-y-5">
-    <div><Link href="/questions" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />Deneyim sorularına dön</Link><p className="mt-5 text-sm text-muted-foreground">{context}</p><h1 className="mt-1 flex items-center gap-2 text-2xl font-semibold"><MessageCircle className="size-6" />Mini konuşma</h1></div>
+    <div><Link prefetch={false} href="/questions" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />Deneyim sorularına dön</Link><p className="mt-5 text-sm text-muted-foreground">{context}</p><h1 className="mt-1 flex items-center gap-2 text-2xl font-semibold"><MessageCircle className="size-6" />Mini konuşma</h1></div>
 
     <div className="flex gap-3 rounded-lg border border-primary/15 bg-primary/5 p-4"><ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" /><p className="text-xs leading-relaxed text-muted-foreground">Konuşma yalnızca soruyu soran hekim ile deneyimi paylaşan hekim arasında görünür. Kimlik bilgileri otomatik olarak karşı tarafa açılmaz.</p></div>
     {error && <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}

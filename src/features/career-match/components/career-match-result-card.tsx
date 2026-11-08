@@ -18,7 +18,7 @@ export function CareerMatchResultCard({
         <div>
           <p className="text-xs text-muted-foreground">#{rank}</p>
           <CardTitle className="text-base">
-            <Link href={`/clinic/${clinic.clinicId}`} className="hover:underline">
+            <Link prefetch={false} href={`/clinic/${clinic.clinicId}`} className="hover:underline">
               {clinic.hospitalName}
             </Link>
           </CardTitle>

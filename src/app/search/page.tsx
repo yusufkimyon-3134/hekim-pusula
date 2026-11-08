@@ -239,7 +239,7 @@ export default async function SearchPage({
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
                   {suggestedCities.map((c) => (
-                    <Link
+                    <Link prefetch={false}
                       key={c.city}
                       href={`/search?q=${encodeURIComponent(c.city)}`}
                       className="rounded-full border border-border bg-card px-3 py-1 text-xs transition-colors hover:border-primary/40"

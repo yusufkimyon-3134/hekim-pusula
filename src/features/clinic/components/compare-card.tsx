@@ -20,7 +20,7 @@ export function CompareCard({
           {HOSPITAL_TYPE_LABELS[clinic.hospital.hospitalType]}
         </Badge>
         <CardTitle className="text-lg">{clinic.branch}</CardTitle>
-        <Link
+        <Link prefetch={false}
           href={`/clinic/${clinic.id}`}
           className="text-sm text-muted-foreground underline-offset-2 hover:underline"
         >

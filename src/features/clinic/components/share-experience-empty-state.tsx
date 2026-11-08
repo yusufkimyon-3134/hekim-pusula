@@ -24,7 +24,7 @@ export function ShareExperienceEmptyState({
           </p>
         </div>
         <Button asChild>
-          <Link href={reviewHref}>Deneyimini Paylaş</Link>
+          <Link prefetch={false} href={reviewHref}>Deneyimini Paylaş</Link>
         </Button>
       </CardContent>
     </Card>

@@ -104,7 +104,7 @@ export default async function AdminPage({
                   <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
                     <span className="text-muted-foreground">Yüklenme: {formatDate(request.createdAt)}</span>
                     {request.documentUrl ? (
-                      <Button asChild variant="outline" size="sm"><Link href={request.documentUrl} target="_blank" rel="noreferrer">Belgeyi güvenli aç <ExternalLink /></Link></Button>
+                      <Button asChild variant="outline" size="sm"><Link prefetch={false} href={request.documentUrl} target="_blank" rel="noreferrer">Belgeyi güvenli aç <ExternalLink /></Link></Button>
                     ) : (
                       <span className="text-destructive">Belge bulunamadı</span>
                     )}

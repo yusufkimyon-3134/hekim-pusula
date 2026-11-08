@@ -19,7 +19,7 @@ export function ClinicCard({
   isVerified,
 }: ClinicCardProps) {
   return (
-    <Link href={href} className="block">
+    <Link prefetch={false} href={href} className="block">
       <Card className="transition-colors hover:border-primary/40">
         <CardHeader>
           <CardTitle className="text-base">{branch}</CardTitle>

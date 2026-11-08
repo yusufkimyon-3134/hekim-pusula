@@ -26,7 +26,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
             {resent === "1" && <p className="w-full rounded-md bg-accent px-3 py-2 text-sm text-accent-foreground">Aktivasyon e-postası yeniden gönderildi.</p>}
             {error && <p className="w-full rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
             {email && <form action={resendActivation} className="w-full"><input type="hidden" name="email" value={email} /><input type="hidden" name="next" value={next} /><Button type="submit" variant="secondary" className="w-full">E-postayı yeniden gönder</Button></form>}
-            <Button asChild variant="outline" className="w-full"><Link href={`/login?redirectTo=${encodeURIComponent(next)}`}>Giriş yap</Link></Button>
+            <Button asChild variant="outline" className="w-full"><Link prefetch={false} href={`/login?redirectTo=${encodeURIComponent(next)}`}>Giriş yap</Link></Button>
           </CardContent>
         </Card>
       </Container>
@@ -47,10 +47,10 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
             {error && <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
             <div className="space-y-1.5"><Label htmlFor="email">E-posta</Label><Input id="email" name="email" type="email" autoComplete="email" placeholder="ornek@eposta.com" required autoFocus /></div>
             <div className="space-y-1.5"><Label htmlFor="password">Şifre</Label><Input id="password" name="password" type="password" autoComplete="new-password" minLength={6} placeholder="En az 6 karakter" required /></div>
-            <label className="flex items-start gap-2.5 text-xs text-muted-foreground"><input type="checkbox" name="acceptLegal" required className="mt-0.5 size-4 shrink-0 rounded border-input" /><span><Link href="/kvkk-aydinlatma" target="_blank" className="text-foreground underline">KVKK Aydınlatma Metni</Link>&apos;ni okudum ve <Link href="/kullanim-kosullari" target="_blank" className="text-foreground underline">Kullanım Koşulları</Link>&apos;nı kabul ediyorum.</span></label>
+            <label className="flex items-start gap-2.5 text-xs text-muted-foreground"><input type="checkbox" name="acceptLegal" required className="mt-0.5 size-4 shrink-0 rounded border-input" /><span><Link prefetch={false} href="/kvkk-aydinlatma" target="_blank" className="text-foreground underline">KVKK Aydınlatma Metni</Link>&apos;ni okudum ve <Link prefetch={false} href="/kullanim-kosullari" target="_blank" className="text-foreground underline">Kullanım Koşulları</Link>&apos;nı kabul ediyorum.</span></label>
             <Button type="submit" className="w-full">Hesap oluştur</Button>
           </form>
-          <p className="mt-4 text-center text-sm text-muted-foreground">Zaten hesabın var mı? <Link href={`/login?redirectTo=${encodeURIComponent(next)}`} className="font-medium text-foreground underline-offset-2 hover:underline">Giriş yap</Link></p>
+          <p className="mt-4 text-center text-sm text-muted-foreground">Zaten hesabın var mı? <Link prefetch={false} href={`/login?redirectTo=${encodeURIComponent(next)}`} className="font-medium text-foreground underline-offset-2 hover:underline">Giriş yap</Link></p>
         </CardContent>
       </Card>
     </Container>

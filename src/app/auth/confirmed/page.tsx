@@ -26,7 +26,7 @@ export default async function ConfirmedPage({
             </p>
           </div>
           <Button asChild className="w-full">
-            <Link href={destination}>Profilimi tamamla</Link>
+            <Link prefetch={false} href={destination}>Profilimi tamamla</Link>
           </Button>
         </CardContent>
       </Card>

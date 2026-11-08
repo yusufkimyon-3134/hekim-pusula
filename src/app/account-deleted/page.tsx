@@ -23,10 +23,10 @@ export default function AccountDeletedPage() {
           </p>
           <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
             <Button asChild variant="outline">
-              <Link href="/">Ana sayfaya dön</Link>
+              <Link prefetch={false} href="/">Ana sayfaya dön</Link>
             </Button>
             <Button asChild>
-              <Link href="/register">Yeni hesap oluştur</Link>
+              <Link prefetch={false} href="/register">Yeni hesap oluştur</Link>
             </Button>
           </div>
         </CardContent>

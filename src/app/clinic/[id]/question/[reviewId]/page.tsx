@@ -70,7 +70,7 @@ export default async function AskReviewAuthorPage({
           </div>
           <div className="flex items-center gap-3">
             <Button type="submit">Soruyu gönder</Button>
-            <Button asChild type="button" variant="outline"><Link href={`/clinic/${clinicId}`}>Vazgeç</Link></Button>
+            <Button asChild type="button" variant="outline"><Link prefetch={false} href={`/clinic/${clinicId}`}>Vazgeç</Link></Button>
           </div>
         </form>
       </main>

@@ -9,7 +9,7 @@ import type { SearchSuggestion } from "@/types";
 import { findPublicHospitalMatches } from "@/data/public-hospital-catalog";
 
 const MIN_QUERY_LENGTH = 2;
-const DEBOUNCE_MS = 180;
+const DEBOUNCE_MS = 400;
 
 type SuggestionWithHref = SearchSuggestion & { href: string };
 type ReviewAccess = "verified" | "anonymous" | "unverified";
@@ -90,6 +90,7 @@ export function HospitalSuggestSearch({
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    abortControllerRef.current?.abort();
 
     const query = value.trim();
     if (query.length < MIN_QUERY_LENGTH) {
@@ -147,6 +148,7 @@ export function HospitalSuggestSearch({
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      abortControllerRef.current?.abort();
     };
   }, [value]);
 

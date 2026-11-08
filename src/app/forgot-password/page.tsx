@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
               </p>
             </div>
             <Button asChild variant="outline" className="mt-2 w-full">
-              <Link href="/login">Giriş sayfasına dön</Link>
+              <Link prefetch={false} href="/login">Giriş sayfasına dön</Link>
             </Button>
           </CardContent>
         </Card>
@@ -93,7 +93,7 @@ export default function ForgotPasswordPage() {
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            <Link href="/login" className="text-foreground underline-offset-2 hover:underline">
+            <Link prefetch={false} href="/login" className="text-foreground underline-offset-2 hover:underline">
               Giriş sayfasına dön
             </Link>
           </p>
