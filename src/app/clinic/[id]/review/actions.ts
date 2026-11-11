@@ -49,5 +49,5 @@ export async function submitReview(formData: FormData) {
     redirect(`/clinic/${clinicId}/review?error=${encodeURIComponent(errorMessage)}`);
   }
 
-  redirect(`/clinic/${clinicId}?shared=1`);
+  redirect(`/clinic/${clinicId}?shared=created`);
 }
