@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Container } from "@/components/layout/container";
@@ -45,6 +46,13 @@ export default async function ProfilePage({
     );
   }
 
+  const requestedDestination = safeRedirectPath(redirectTo, "");
+  const returnCookie = (await cookies()).get("verification-return")?.value ?? "";
+  const ownerPrefix = `${userData.user.id}:`;
+  const rememberedDestination = returnCookie.startsWith(ownerPrefix)
+    ? safeRedirectPath(returnCookie.slice(ownerPrefix.length), "")
+    : "";
+
   const doctorRepository = new DoctorRepository(supabase);
   const verificationRepository = new DoctorVerificationRepository(supabase);
   // Her sorgu ayrı ayrı safeQuery ile sarılı: bunlardan biri (örn.
@@ -59,6 +67,10 @@ export default async function ProfilePage({
     safeQuery(() => verificationRepository.findLatestRequest(userData.user.id), null),
   ]);
 
+
+  if (doctor?.isVerified && /^\/(clinic|hospital)\//.test(requestedDestination)) {
+    redirect(requestedDestination);
+  }
 
   // Sadece oturum sahibinin yorumları; doktor-işyeri ilişkisi üzerinden filtrelenir.
   const myReviews = await safeQuery(async () => {
@@ -89,6 +101,10 @@ export default async function ProfilePage({
               : "Deneyim paylaşabilmek için profilini tamamla."}
           </p>
         </div>
+
+        {doctor?.isVerified && rememberedDestination && (
+          <Button asChild><Link prefetch={false} href={rememberedDestination}>Baktığın sayfaya dön</Link></Button>
+        )}
 
         {reputation && (
           <Card>
@@ -156,8 +172,7 @@ export default async function ProfilePage({
 
         {redirectTo && doctor && !doctor.isVerified && (
           <p className="rounded-md bg-accent px-3 py-2 text-sm text-accent-foreground">
-            Yorum yazabilmek için önce hekim doğrulamanı tamamlaman gerekiyor —
-            aşağıdan belge yükleyerek başvurabilirsin.
+            Yorumları okumak ve deneyim paylaşmak için hekim doğrulamasına başvurabilirsin.
           </p>
         )}
 
@@ -176,6 +191,7 @@ export default async function ProfilePage({
             <VerificationCard
               isVerified={doctor.isVerified}
               latestRequest={latestVerificationRequest}
+              returnTo={requestedDestination || rememberedDestination}
             />
           </>
         )}

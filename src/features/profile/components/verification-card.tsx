@@ -29,9 +29,11 @@ import type { VerificationRequest } from "@/types";
 export function VerificationCard({
   isVerified,
   latestRequest,
+  returnTo,
 }: {
   isVerified: boolean;
   latestRequest: VerificationRequest | null;
+  returnTo: string;
 }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -89,6 +91,7 @@ export function VerificationCard({
         fullName,
         documentType,
         documentPath,
+        returnTo,
       });
 
       if (!result.success) {
@@ -96,7 +99,9 @@ export function VerificationCard({
         return;
       }
 
-      router.replace("/profile?verificationSubmitted=1");
+      const query = new URLSearchParams({ verificationSubmitted: "1" });
+      if (returnTo) query.set("redirectTo", returnTo);
+      router.replace(`/profile?${query}`);
       router.refresh();
     } catch {
       setUploadError("Belge yüklenirken beklenmeyen bir hata oluştu.");
@@ -187,6 +192,10 @@ export function VerificationCard({
               <p className="text-xs text-muted-foreground">
                 Belgende TC kimlik numarasının görünmesini istemiyorsan, yüklemeden
                 önce o kısmı karartabilir/maskeleyebilirsin.
+              </p>
+
+              <p className="text-xs text-muted-foreground">
+                Belgen yalnızca hekimlik durumunu doğrulamak için kullanılır. Başvurun onaylandığında veya reddedildiğinde belgenin otomatik silinmesi başlatılır.
               </p>
 
               <Button type="submit" className="w-full gap-2" disabled={isSubmitting}>

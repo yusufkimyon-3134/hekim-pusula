@@ -1,3 +1,5 @@
+import { PublicReviewSummary } from "./public-review-summary";
+import type { ReviewSummary } from "@/lib/repositories/public-review-summary";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
@@ -8,6 +10,7 @@ interface ClinicCardProps {
   reviewCount?: number;
   avgScore?: number | null;
   isVerified?: boolean;
+  publicSummary?: ReviewSummary;
 }
 
 export function ClinicCard({
@@ -17,6 +20,7 @@ export function ClinicCard({
   reviewCount,
   avgScore,
   isVerified,
+  publicSummary,
 }: ClinicCardProps) {
   return (
     <Link prefetch={false} href={href} className="block">
@@ -27,6 +31,7 @@ export function ClinicCard({
             <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
           )}
         </CardHeader>
+        {publicSummary && <CardContent className="pt-0"><PublicReviewSummary summary={publicSummary} /></CardContent>}
         {isVerified && (reviewCount !== undefined || avgScore !== null) && (
           <CardContent className="pt-0">
             <div className="flex gap-4 text-xs text-muted-foreground">

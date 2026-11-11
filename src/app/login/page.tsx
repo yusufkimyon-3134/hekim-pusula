@@ -74,7 +74,7 @@ export default async function LoginPage({
 
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Hesabın yok mu?{" "}
-            <Link prefetch={false} href="/register" className="text-foreground underline-offset-2 hover:underline">
+            <Link prefetch={false} href={redirectTo ? `/register?next=${encodeURIComponent(redirectTo)}` : "/register"} className="text-foreground underline-offset-2 hover:underline">
               Kayıt ol
             </Link>
           </p>

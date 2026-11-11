@@ -9,6 +9,6 @@ export function safeRedirectPath(
   fallback: string
 ): string {
   if (!path) return fallback;
-  if (!path.startsWith("/") || path.startsWith("//")) return fallback;
+  if (!path.startsWith("/") || path.startsWith("//") || /[\\\x00-\x1f\x7f]/.test(path)) return fallback;
   return path;
 }

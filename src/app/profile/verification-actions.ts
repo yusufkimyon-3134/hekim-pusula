@@ -1,5 +1,7 @@
 "use server";
 
+import { cookies } from "next/headers";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 import { createClient } from "@/lib/supabase/server";
 import { DoctorVerificationRepository } from "@/lib/repositories/doctor-verification-repository";
 import {
@@ -13,6 +15,7 @@ type VerificationSubmission = {
   fullName: string;
   documentType: string;
   documentPath: string;
+  returnTo?: string;
 };
 
 type VerificationSubmissionResult = { success: true } | { success: false; error: string };
@@ -64,6 +67,17 @@ export async function submitVerificationRequest(
       success: false,
       error: e instanceof Error ? e.message : "Başvuru kaydedilemedi.",
     };
+  }
+
+  const returnTo = safeRedirectPath(input.returnTo, "");
+  if (/^\/(clinic|hospital)\//.test(returnTo) && returnTo.length <= 512) {
+    (await cookies()).set("verification-return", `${userData.user.id}:${returnTo}`, {
+      path: "/profile",
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 30,
+    });
   }
 
   return { success: true };
