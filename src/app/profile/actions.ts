@@ -56,5 +56,8 @@ export async function saveProfile(formData: FormData) {
     redirect(`/profile?error=${encodeURIComponent(errorMessage)}${returnTo}`);
   }
 
+  if (/^\/(clinic|hospital)\//.test(redirectTo)) {
+    redirect(`/profile?saved=1&redirectTo=${encodeURIComponent(redirectTo)}`);
+  }
   redirect(redirectTo);
 }

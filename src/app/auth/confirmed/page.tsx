@@ -1,3 +1,4 @@
+import { safeRedirectPath } from "@/lib/safe-redirect";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { Container } from "@/components/layout/container";
@@ -10,7 +11,9 @@ export default async function ConfirmedPage({
   searchParams: Promise<{ next?: string }>;
 }) {
   const { next } = await searchParams;
-  const destination = next && next.startsWith("/") && !next.startsWith("//") ? next : "/profile";
+  const destination = safeRedirectPath(next, "/profile");
+  const needsVerification = /^\/(clinic|hospital)\//.test(destination);
+  const continueHref = needsVerification ? `/profile?redirectTo=${encodeURIComponent(destination)}` : destination;
 
   return (
     <Container className="flex justify-center py-16">
@@ -22,11 +25,11 @@ export default async function ConfirmedPage({
           <div className="space-y-1.5">
             <p className="text-xl font-semibold">E-posta doğrulandı</p>
             <p className="text-sm text-muted-foreground">
-              Hesabın başarıyla aktifleştirildi. Profilini tamamlamak için devam edebilirsin.
+              Hesabın aktif. Hekim doğrulamasına başvurmak için profilini tamamlayabilirsin.
             </p>
           </div>
           <Button asChild className="w-full">
-            <Link prefetch={false} href={destination}>Profilimi tamamla</Link>
+            <Link prefetch={false} href={continueHref}>Profilimi tamamla</Link>
           </Button>
         </CardContent>
       </Card>

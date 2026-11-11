@@ -645,6 +645,7 @@ export type Database = {
           daily_patients: number
           doctor_workplace_id: string
           id: string
+          last_verified_at: string
           monthly_shifts: number
           service_patients: number
           show_nickname: boolean
@@ -659,6 +660,7 @@ export type Database = {
           daily_patients: number
           doctor_workplace_id: string
           id?: string
+          last_verified_at?: string
           monthly_shifts: number
           service_patients: number
           show_nickname?: boolean
@@ -673,6 +675,7 @@ export type Database = {
           daily_patients?: number
           doctor_workplace_id?: string
           id?: string
+          last_verified_at?: string
           monthly_shifts?: number
           service_patients?: number
           show_nickname?: boolean
@@ -706,6 +709,10 @@ export type Database = {
       }
     }
     Views: {
+      public_clinic_review_summaries: {
+        Row: { clinic_id: string; review_count: number; last_verified_at: string | null }
+        Relationships: []
+      }
       clinic_review_stats: {
         Row: {
           avg_academic_score: number | null
