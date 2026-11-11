@@ -15,6 +15,39 @@ import { safeQuery } from "@/lib/safe-query";
 export const metadata: Metadata = { alternates: { canonical: "https://www.hekimpusula.com.tr/" } };
 export const dynamic = "force-dynamic";
 
+const reviewCountFormat = new Intl.NumberFormat("tr-TR");
+const reviewDateFormat = new Intl.DateTimeFormat("tr-TR", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "Europe/Istanbul",
+});
+
+async function getHomeReviewSummary(supabase: Awaited<ReturnType<typeof createClient>>) {
+  const pageSize = 100;
+  let count = 0;
+  let lastVerifiedAt: string | null = null;
+
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase
+      .from("public_clinic_review_summaries")
+      .select("review_count, last_verified_at")
+      .order("clinic_id")
+      .range(offset, offset + pageSize - 1);
+
+    if (error) throw error;
+
+    for (const row of data) {
+      count += row.review_count;
+      if (row.last_verified_at && (!lastVerifiedAt || Date.parse(row.last_verified_at) > Date.parse(lastVerifiedAt))) {
+        lastVerifiedAt = row.last_verified_at;
+      }
+    }
+
+    if (data.length < pageSize) return { count, lastVerifiedAt };
+  }
+}
+
 export default async function HomePage() {
   let featuredCities: Awaited<ReturnType<HospitalRepository["listFeaturedCities"]>> = [];
   let topClinics: Awaited<ReturnType<DashboardRepository["topClinicsThisMonth"]>> = [];
@@ -22,19 +55,22 @@ export default async function HomePage() {
   let trending: Awaited<ReturnType<DashboardRepository["trendingSpecialties"]>> = [];
   let mostDiscussed: Awaited<ReturnType<DashboardRepository["mostDiscussedHospitals"]>> = [];
   let isVerified = false;
+  let reviewSummary: Awaited<ReturnType<typeof getHomeReviewSummary>> | null = null;
   try {
     const supabase = await createClient();
     const hospitalRepository = new HospitalRepository(supabase);
-    const [cities, { data: userData }] = await Promise.all([
+    const [cities, { data: userData }, publicReviewSummary] = await Promise.all([
       safeQuery(() => hospitalRepository.listFeaturedCities(6), []),
       supabase.auth.getUser(),
+      safeQuery(() => getHomeReviewSummary(supabase), null),
     ]);
     featuredCities = cities;
+    reviewSummary = publicReviewSummary;
     if (userData.user) {
       const doctor = await new DoctorRepository(supabase).findById(userData.user.id);
       isVerified = doctor?.isVerified === true;
     }
-    // Review statistics are private. Do not query them for guests or unverified accounts.
+    // Detailed dashboard statistics require a verified account.
     if (isVerified) {
       const dashboard = new DashboardRepository(supabase);
       [topClinics, mostImproved, trending, mostDiscussed] = await Promise.all([
@@ -56,6 +92,21 @@ export default async function HomePage() {
           <HospitalSuggestSearch name="q" placeholder="Hastane veya branş adı yaz" ariaLabel="Kurum veya klinik ara" className="min-w-0 sm:flex-1" />
           <Button type="submit" size="lg" className="h-11 bg-[color:var(--color-ring)] text-primary hover:bg-[color:var(--color-ring)]/90 sm:w-auto">Ara</Button>
         </form>
+        {reviewSummary && reviewSummary.count > 0 && (
+          <p className="flex flex-wrap items-baseline justify-center gap-x-3 gap-y-1 text-sm text-primary-foreground/80">
+            <span className="font-semibold text-primary-foreground">
+              {reviewCountFormat.format(reviewSummary.count)} hekim değerlendirmesi
+            </span>
+            {reviewSummary.lastVerifiedAt && (
+              <span>
+                Son yorum teyidi:{" "}
+                <time dateTime={reviewSummary.lastVerifiedAt}>
+                  {reviewDateFormat.format(new Date(reviewSummary.lastVerifiedAt))}
+                </time>
+              </span>
+            )}
+          </p>
+        )}
         {isVerified ? <Link prefetch={false} href="/career-match" className="text-sm text-primary-foreground/80 underline-offset-2 hover:underline">Kariyer eşleştirme ile sana uygun klinikleri bul</Link> : <p className="text-sm text-primary-foreground/80">Kurumları ücretsiz keşfet. Hekim deneyimleri için hesabını doğrula.</p>}
       </Container>
     </section>
