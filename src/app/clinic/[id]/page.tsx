@@ -91,7 +91,6 @@ export default async function ClinicDetailPage({ params, searchParams }: { param
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }} />
     <div className="mx-auto max-w-2xl space-y-14">
       <ClinicHero branch={clinic.branch} hospital={clinic.hospital} />
-      {!clinic.availabilityVerified && <p className="rounded-lg border border-dashed p-4 text-sm leading-6 text-muted-foreground">Bu branşın hastanede güncel olarak hizmet verdiği henüz doğrulanmadı. Bu sayfa bir branş değerlendirme kaydıdır; güncel klinik veya kadro listesi değildir.</p>}
       {publicSummaries && <div className="rounded-lg border bg-muted/30 px-4 py-3"><PublicReviewSummary summary={publicSummaries.get(id)} /></div>}
       <ClinicIntro />
       {!userData.user ? <>
