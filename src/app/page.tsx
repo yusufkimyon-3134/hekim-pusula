@@ -105,7 +105,7 @@ export default async function HomePage() {
 
   return <>
     <section className="bg-primary text-primary-foreground">
-      <Container className="flex flex-col items-center gap-5 py-12 text-center sm:py-16">
+      <Container className="flex flex-col items-center gap-4 py-7 text-center sm:py-9">
         <div className="space-y-3"><h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Çalışacağın hastaneyi araştır</h1><p className="mx-auto max-w-md text-base text-primary-foreground/80">Kura ve atama öncesi hekimlerin deneyimlerini keşfet.</p></div>
         <form action="/search" className="mx-auto flex w-full max-w-xl flex-col gap-2 sm:flex-row sm:items-start">
           <HospitalSuggestSearch name="q" placeholder="Hastane veya branş adı yaz" ariaLabel="Kurum veya klinik ara" className="min-w-0 sm:flex-1" />
@@ -128,66 +128,68 @@ export default async function HomePage() {
         )}
       </Container>
     </section>
-    <Container className="space-y-9 py-10">
-      {isVerified && (
-        <Link prefetch={false} href="/career-match" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
-          Kariyer eşleştirme <span aria-hidden="true">→</span>
-        </Link>
-      )}
-
-      <section>
-        <h2 className="text-lg font-semibold tracking-tight">Şehre göre hastane bul</h2>
-        {featuredCities.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">Şehir listesi şu anda yüklenemedi. Yukarıdaki arama alanını kullanabilirsin.</p>
-        ) : (
-          <ul className="mt-4 flex flex-wrap gap-2">
-            {featuredCities.map(({ city }) => (
-              <li key={city}>
-                <Link prefetch={false} href={`/sehir/${encodeURIComponent(city)}`} className="inline-flex min-h-11 items-center rounded-full border border-border bg-card px-4 text-sm font-medium transition-colors hover:border-primary/40">
-                  {city}
-                </Link>
-              </li>
-            ))}
-          </ul>
+    <Container className="py-5 sm:py-6">
+      <div className="mx-auto max-w-xl space-y-5">
+        {isVerified && (
+          <Link prefetch={false} href="/career-match" className="inline-flex min-h-8 items-center gap-2 text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
+            Kariyer eşleştirme <span aria-hidden="true">→</span>
+          </Link>
         )}
-      </section>
 
-      {recentClinics.length > 0 ? (
         <section>
-          <h2 className="text-lg font-semibold tracking-tight">Son değerlendirilen klinikler</h2>
-          <ul className="mt-4 space-y-2">
-            {recentClinics.map((clinic) => (
-              <li key={clinic.id}>
-                <Link prefetch={false} href={`/clinic/${clinic.id}`} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:border-primary/40">
-                  <div className="min-w-0">
-                    <p className="font-medium">{clinic.hospitalName}</p>
-                    <p className="text-sm text-muted-foreground">{clinic.branch} · {clinic.hospitalCity}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {reviewCountFormat.format(clinic.reviewCount)} yorum
-                      {clinic.lastVerifiedAt && (
-                        <>
-                          {" · Son teyit "}
-                          <time dateTime={clinic.lastVerifiedAt}>
-                            {reviewDateFormat.format(new Date(clinic.lastVerifiedAt))}
-                          </time>
-                        </>
-                      )}
-                    </p>
-                  </div>
-                  <span aria-hidden="true">→</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <h2 className="text-sm font-semibold tracking-tight">Şehre göre hastane bul</h2>
+          {featuredCities.length === 0 ? (
+            <p className="mt-3 text-sm text-muted-foreground">Şehir listesi şu anda yüklenemedi. Yukarıdaki arama alanını kullanabilirsin.</p>
+          ) : (
+            <ul className="mt-2 flex flex-wrap gap-2">
+              {featuredCities.map(({ city }) => (
+                <li key={city}>
+                  <Link prefetch={false} href={`/sehir/${encodeURIComponent(city)}`} className="inline-flex min-h-9 items-center rounded-full border border-border bg-card px-3 text-xs font-medium transition-colors hover:border-primary/40">
+                    {city}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
-      ) : (
-        <section className="rounded-lg border bg-card p-6 sm:p-8">
-          <h2 className="text-lg font-semibold">Çalıştığın kurumu meslektaşlarına anlat</h2>
-          <Button asChild className="mt-4">
-            <Link prefetch={false} href="/search">Hastanemi bul</Link>
-          </Button>
-        </section>
-      )}
+
+        {recentClinics.length > 0 ? (
+          <section>
+            <h2 className="text-lg font-semibold tracking-tight">Son değerlendirilen klinikler</h2>
+            <ul className="mt-2 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+              {recentClinics.map((clinic) => (
+                <li key={clinic.id}>
+                  <Link prefetch={false} href={`/clinic/${clinic.id}`} className="flex items-center justify-between gap-2 px-3 py-2 transition-colors hover:bg-accent/50">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium leading-snug">{clinic.hospitalName}</p>
+                      <p className="text-xs text-muted-foreground">{clinic.branch} · {clinic.hospitalCity}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {reviewCountFormat.format(clinic.reviewCount)} yorum
+                        {clinic.lastVerifiedAt && (
+                          <>
+                            {" · Son teyit "}
+                            <time dateTime={clinic.lastVerifiedAt}>
+                              {reviewDateFormat.format(new Date(clinic.lastVerifiedAt))}
+                            </time>
+                          </>
+                        )}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-xs text-muted-foreground" aria-hidden="true">→</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : (
+          <section className="rounded-lg border bg-card p-6 sm:p-8">
+            <h2 className="text-lg font-semibold">Çalıştığın kurumu meslektaşlarına anlat</h2>
+            <Button asChild className="mt-4">
+              <Link prefetch={false} href="/search">Hastanemi bul</Link>
+            </Button>
+          </section>
+        )}
+      </div>
     </Container>
   </>;
 }
