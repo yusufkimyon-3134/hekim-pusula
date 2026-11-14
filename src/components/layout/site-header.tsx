@@ -28,10 +28,6 @@ export async function SiteHeader() {
         </Link>
 
         <nav aria-label="Ana menü" className="hidden items-center gap-6 text-sm md:flex">
-          <Link prefetch={false} href="/" className="opacity-90 transition-opacity hover:opacity-100">
-            Ana sayfa
-          </Link>
-
           {authUser ? (
             <>
               <Link prefetch={false} href="/questions" className="opacity-90 transition-opacity hover:opacity-100">
