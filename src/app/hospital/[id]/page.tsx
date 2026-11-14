@@ -68,8 +68,28 @@ export default async function HospitalDetailPage({ params }: { params: Promise<{
       hospitalSummary.lastVerifiedAt = summary.lastVerifiedAt;
     }
   }
-  const verifiedClinics = clinics.filter((clinic) => clinic.availabilityVerified);
-  const unverifiedClinics = clinics.filter((clinic) => !clinic.availabilityVerified);
+  const clinicsByReviewCount = [...clinics].sort(
+    (first, second) =>
+      (publicSummaries?.get(second.id)?.count ?? 0) -
+      (publicSummaries?.get(first.id)?.count ?? 0),
+  );
+  const verifiedClinics = clinicsByReviewCount.filter((clinic) => clinic.availabilityVerified);
+  const unverifiedClinics = clinicsByReviewCount.filter((clinic) => !clinic.availabilityVerified);
+
+  function renderClinicCards(branches: typeof clinics) {
+    return (
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        {branches.map((clinic) => (
+          <ClinicCard
+            key={clinic.id}
+            branch={clinic.branch}
+            href={`/clinic/${clinic.id}`}
+            publicSummary={publicSummaries ? publicSummaries.get(clinic.id) ?? { count: 0, lastVerifiedAt: null } : undefined}
+          />
+        ))}
+      </div>
+    );
+  }
 
   let isVerified = false;
   if (userData.user) {
@@ -82,19 +102,28 @@ export default async function HospitalDetailPage({ params }: { params: Promise<{
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }} />
       <DetailPageHeader title={hospital.name} subtitle={`${hospital.district}, ${hospital.city}`} badgeLabel={HOSPITAL_TYPE_LABELS[hospital.hospitalType]} />
 
-      <section className="mt-6 rounded-lg border bg-muted/30 p-5">
-        <h2 className="font-semibold">{hospital.name} çalışma deneyimleri</h2>
-        {publicSummaries && <PublicReviewSummary summary={hospitalSummary} />}
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          {hospital.city} ilindeki {hospital.name} için kliniklere göre hekim deneyimlerini keşfet. Nöbet düzeni, eğitim ortamı, yönetim, teşvik ve günlük çalışma koşulları TUS, YDUS ve DHY tercihleri öncesinde en çok merak edilen başlıklardır.
-        </p>
-      </section>
+      {publicSummaries && (
+        <div className="mt-4">
+          <PublicReviewSummary summary={hospitalSummary} />
+        </div>
+      )}
 
-      <section className="mt-8">
-        <SectionLabel>Hizmet verdiği doğrulanmış klinikler ({verifiedClinics.length})</SectionLabel>
-        {verifiedClinics.length === 0 ? <p className="mt-4 text-sm leading-6 text-muted-foreground">Bu hastanenin güncel klinik listesi henüz doğrulanmadı. Aşağıdaki branş kayıtları, hastanede bu hizmetlerin bulunduğunu göstermez.</p> : <div className="mt-3 grid gap-3 sm:grid-cols-2">{verifiedClinics.map((clinic) => <ClinicCard key={clinic.id} branch={clinic.branch} href={`/clinic/${clinic.id}`} publicSummary={publicSummaries ? publicSummaries.get(clinic.id) ?? { count: 0, lastVerifiedAt: null } : undefined} />)}</div>}
-        {unverifiedClinics.length > 0 && <details className="mt-6 rounded-lg border p-4"><summary className="cursor-pointer text-sm font-medium">Doğrulanmamış branş kayıtları ({unverifiedClinics.length})</summary><p className="mt-3 text-sm leading-6 text-muted-foreground">Bunlar deneyim paylaşımı için oluşturulmuş kayıtlardır. Güncel hizmet ve kadro bilgisi için hastanenin resmî duyurularını kontrol et.</p><div className="mt-4 grid gap-3 sm:grid-cols-2">{unverifiedClinics.map((clinic) => <ClinicCard key={clinic.id} branch={clinic.branch} href={`/clinic/${clinic.id}`} publicSummary={publicSummaries ? publicSummaries.get(clinic.id) ?? { count: 0, lastVerifiedAt: null } : undefined} />)}</div></details>}
-      </section>
+      {verifiedClinics.length > 0 && (
+        <section className="mt-8">
+          <SectionLabel>Hizmet verdiği doğrulanmış klinikler ({verifiedClinics.length})</SectionLabel>
+          {renderClinicCards(verifiedClinics)}
+        </section>
+      )}
+
+      {unverifiedClinics.length > 0 && (
+        <section className="mt-8">
+          <SectionLabel>Branşlara göre hekim değerlendirmeleri</SectionLabel>
+          {renderClinicCards(unverifiedClinics)}
+          <p className="mt-3 text-sm text-muted-foreground">
+            Güncel klinik ve kadro bilgisi için hastanenin resmî sitesine bakabilirsiniz.
+          </p>
+        </section>
+      )}
 
       <div className="mt-8">
         {!userData.user ? (
