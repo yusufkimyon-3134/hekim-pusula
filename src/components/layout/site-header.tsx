@@ -28,6 +28,10 @@ export async function SiteHeader() {
         </Link>
 
         <nav aria-label="Ana menü" className="hidden items-center gap-6 text-sm md:flex">
+          <Link prefetch={false} href="/" className="opacity-90 transition-opacity hover:opacity-100">
+            Ana sayfa
+          </Link>
+
           {authUser ? (
             <>
               <Link prefetch={false} href="/questions" className="opacity-90 transition-opacity hover:opacity-100">
@@ -82,6 +86,9 @@ export async function SiteHeader() {
             aria-label="Mobil ana menü"
             className="absolute right-0 top-[calc(100%+0.5rem)] z-50 flex min-w-52 flex-col overflow-hidden rounded-lg border border-border bg-background py-1 text-sm text-foreground shadow-xl"
           >
+            <Link prefetch={false} href="/" className="px-4 py-3 transition-colors hover:bg-accent">
+              Ana sayfa
+            </Link>
             {authUser ? (
               <>
                 <Link prefetch={false} href="/questions" className="px-4 py-3 transition-colors hover:bg-accent">
