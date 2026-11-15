@@ -8,8 +8,8 @@ export const metadata: Metadata = { alternates: { canonical: "https://www.hekimp
 
 export default function HomePage() {
   return (
-    <section className="bg-primary text-primary-foreground">
-      <Container className="flex flex-col items-center gap-5 py-16 text-center sm:py-24">
+    <section data-home-hero className="grid items-center bg-primary text-primary-foreground">
+      <Container className="flex flex-col items-center gap-5 pb-16 pt-12 text-center sm:pb-24 sm:pt-16">
         <div className="space-y-2">
           <h1 className="flex items-center justify-center gap-2 text-2xl font-semibold tracking-tight sm:text-4xl">
             <LogoMark className="size-8 shrink-0 text-[color:var(--color-ring)] sm:size-11" />
