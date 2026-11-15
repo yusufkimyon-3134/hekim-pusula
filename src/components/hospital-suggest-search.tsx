@@ -201,9 +201,9 @@ export function HospitalSuggestSearch({
           } else if (e.key === "ArrowUp") {
             e.preventDefault();
             setHighlightedIndex((prev) => (prev <= 0 ? suggestions.length - 1 : prev - 1));
-          } else if (e.key === "Enter") {
+          } else if (e.key === "Enter" && highlightedIndex >= 0) {
             e.preventDefault();
-            selectSuggestion(highlightedIndex >= 0 ? highlightedIndex : 0);
+            selectSuggestion(highlightedIndex);
           }
         }}
         placeholder={placeholder}
