@@ -65,9 +65,12 @@ export default async function HomePage() {
   return <>
     <section className="bg-primary text-primary-foreground">
       <Container className="flex flex-col items-center gap-5 py-9 text-center sm:py-12">
-        <h1 className="max-w-xl text-2xl font-semibold tracking-tight sm:text-3xl">
-          Hastaneyi, orada çalışan hekimlerden öğren.
-        </h1>
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Hekim Pusula</h1>
+          <p className="text-base text-primary-foreground/80">
+            Hastaneyi, orada çalışan hekimlerden öğren.
+          </p>
+        </div>
         <form action="/search" className="mx-auto flex w-full max-w-xl items-start gap-2">
           <HospitalSuggestSearch name="q" placeholder="Hastane veya branş ara" ariaLabel="Hastane veya branş ara" className="min-w-0 flex-1" />
           <Button type="submit" size="lg" className="h-11 bg-[color:var(--color-ring)] text-primary hover:bg-[color:var(--color-ring)]/90">Ara</Button>
