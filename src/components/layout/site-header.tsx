@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Menu } from "lucide-react";
+import { MobileMenuLinks } from "@/components/layout/mobile-menu-links";
 import { Container } from "@/components/layout/container";
 import { LogoMark } from "@/components/logo-mark";
 import { getAuthUser } from "@/lib/auth";
@@ -78,10 +79,7 @@ export async function SiteHeader() {
             <Menu aria-hidden="true" className="size-5" />
             Menü
           </summary>
-          <nav
-            aria-label="Mobil ana menü"
-            className="absolute right-0 top-[calc(100%+0.5rem)] z-50 flex min-w-52 flex-col overflow-hidden rounded-lg border border-border bg-background py-1 text-sm text-foreground shadow-xl"
-          >
+          <MobileMenuLinks>
             <Link prefetch={false} href="/" className="px-4 py-3 transition-colors hover:bg-accent">
               Ana sayfa
             </Link>
@@ -125,7 +123,7 @@ export async function SiteHeader() {
                 </Link>
               </>
             )}
-          </nav>
+          </MobileMenuLinks>
         </details>
       </Container>
     </header>
