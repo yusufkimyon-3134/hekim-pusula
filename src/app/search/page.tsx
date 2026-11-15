@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { SearchX } from "lucide-react";
 import { Container } from "@/components/layout/container";
 import { SectionLabel } from "@/components/section-label";
@@ -26,6 +27,10 @@ const HOSPITAL_TYPE_PLURAL_LABELS: Record<HospitalType, string> = {
   city_hospital: "Şehir Hastaneleri",
   university_hospital: "Üniversite Hastaneleri",
 };
+
+function normalizeHospitalName(value: string) {
+  return value.normalize("NFC").trim().replace(/\s+/g, " ").toLocaleLowerCase("tr-TR");
+}
 
 function parseNumberParam(value: string | undefined): number | undefined {
   if (!value) return undefined;
@@ -62,6 +67,18 @@ export default async function SearchPage({
   const hospitalRepository = new HospitalRepository(supabase);
   const clinicRepository = new ClinicRepository(supabase);
 
+  const hospitalSearchArgs = { query: q, city, hospitalType };
+  let unfilteredHospitalResults: Awaited<ReturnType<HospitalRepository["search"]>> | undefined;
+
+  if (q?.trim() && !city && !hospitalType && !minOverall && !minEducation && !minAcademic && !maxMonthlyShifts) {
+    unfilteredHospitalResults = await hospitalRepository.search(hospitalSearchArgs);
+    const name = normalizeHospitalName(q);
+    const exactMatches = unfilteredHospitalResults.filter((hospital) => normalizeHospitalName(hospital.name) === name);
+    if (exactMatches.length === 1) {
+      redirect(`/hospital/${exactMatches[0].id}`);
+    }
+  }
+
   // Auth kontrolü
   const { data: userData } = await supabase.auth.getUser();
   let isVerified = false;
@@ -75,7 +92,6 @@ export default async function SearchPage({
     minOverall || minEducation || minAcademic || maxMonthlyShifts
   );
 
-  const hospitalSearchArgs = { query: q, city, hospitalType };
   // Gelişmiş (puan tabanlı) filtreler yalnızca klinik aramasında anlamlı —
   // hastanelerin kendisinin bir "puanı" yok, puanlar kliniğe ait.
   const clinicSearchArgs = {
@@ -93,7 +109,7 @@ export default async function SearchPage({
     hospitalRepository.listAllCities(),
     hasAdvancedFilters
       ? Promise.resolve([])
-      : hospitalRepository.search(hospitalSearchArgs),
+      : unfilteredHospitalResults ?? hospitalRepository.search(hospitalSearchArgs),
     clinicRepository.search(clinicSearchArgs),
   ]);
 
