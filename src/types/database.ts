@@ -785,6 +785,14 @@ export type Database = {
       }
     }
     Functions: {
+      admin_manual_verification_candidates: {
+        Args: { p_email?: string }
+        Returns: { id: string; email: string; nickname: string; created_at: string }[]
+      }
+      admin_manually_verify_doctor: {
+        Args: { p_doctor_id: string; p_email: string }
+        Returns: boolean
+      }
       admin_signup_count_since: {
         Args: { p_since: string }
         Returns: number
