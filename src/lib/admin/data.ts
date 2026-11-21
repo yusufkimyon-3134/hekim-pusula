@@ -67,3 +67,8 @@ export async function getAdminDashboardData() {
     ).length,
   };
 }
+
+export async function getManualVerificationCandidates(email?: string) {
+  const supabase = await createClient();
+  return supabase.rpc("admin_manual_verification_candidates", email ? { p_email: email } : {});
+}

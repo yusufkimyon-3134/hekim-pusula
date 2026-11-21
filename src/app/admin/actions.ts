@@ -46,3 +46,29 @@ export async function approveVerificationRequest(formData: FormData) {
 export async function rejectVerificationRequest(formData: FormData) {
   await decideRequest(formData, "rejected");
 }
+
+const manualApprovalSchema = z.object({
+  doctorId: requestIdSchema,
+  email: z.string().max(320).email(),
+});
+
+export async function approveDoctorWithoutDocument(formData: FormData) {
+  if (!(await getCurrentAdmin())) redirect("/login?redirectTo=/admin");
+
+  const parsed = manualApprovalSchema.safeParse({
+    doctorId: formData.get("doctorId"),
+    email: formData.get("email"),
+  });
+  if (!parsed.success) redirect("/admin?error=manual-approval");
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_manually_verify_doctor", {
+    p_doctor_id: parsed.data.doctorId,
+    p_email: parsed.data.email,
+  });
+  if (error || !data) redirect("/admin?error=manual-approval");
+
+  revalidatePath("/admin");
+  revalidatePath("/profile");
+  redirect("/admin?updated=manual-approval");
+}

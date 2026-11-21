@@ -6,11 +6,12 @@ import { Container } from "@/components/layout/container";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getCurrentAdmin } from "@/lib/admin/auth";
-import { getAdminDashboardData } from "@/lib/admin/data";
+import { getAdminDashboardData, getManualVerificationCandidates } from "@/lib/admin/data";
 import { VERIFICATION_DOCUMENT_TYPE_LABELS } from "@/lib/verification-document";
-import { approveVerificationRequest, rejectVerificationRequest } from "./actions";
+import { approveDoctorWithoutDocument, approveVerificationRequest, rejectVerificationRequest } from "./actions";
 
 export const metadata: Metadata = {
   title: "Yönetim",
@@ -28,15 +29,19 @@ function formatDate(value: string) {
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ updated?: string; error?: string }>;
+  searchParams: Promise<{ updated?: string; error?: string; email?: string }>;
 }) {
   const currentAdmin = await getCurrentAdmin();
   if (!currentAdmin) redirect("/login?redirectTo=/admin");
 
-  const [{ updated, error }, dashboard] = await Promise.all([
+  const [params, dashboard] = await Promise.all([
     searchParams,
     getAdminDashboardData(),
   ]);
+
+  const email = typeof params.email === "string" ? params.email.trim().slice(0, 320) : "";
+  const { updated, error } = params;
+  const candidates = await getManualVerificationCandidates(email);
 
   return (
     <Container className="py-10">
@@ -53,12 +58,16 @@ export default async function AdminPage({
 
         {updated && (
           <p role="status" className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-            Başvuru {updated === "approved" ? "onaylandı" : "reddedildi"}; yüklenen belge otomatik silme kuyruğuna alındı.
+            {updated === "manual-approval"
+              ? "Üyenin hekimliği belge yüklemeden doğrulandı."
+              : `Başvuru ${updated === "approved" ? "onaylandı" : "reddedildi"}. Yüklenen belge otomatik silme kuyruğuna alındı.`}
           </p>
         )}
         {error && (
           <p role="alert" className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            İşlem tamamlanamadı. Alanları kontrol edip yeniden dene.
+            {error === "manual-approval"
+              ? "Belgesiz onay tamamlanamadı. Üye hâlâ listede görünüyorsa yeniden dene."
+              : "İşlem tamamlanamadı. Alanları kontrol edip yeniden dene."}
           </p>
         )}
 
@@ -124,6 +133,43 @@ export default async function AdminPage({
                 </CardContent>
               </Card>
             ))
+          )}
+        </section>
+
+        <section className="space-y-4" aria-labelledby="manual-verification">
+          <h2 id="manual-verification" className="text-xl font-semibold">Belgesiz hekim onayı</h2>
+          <p className="text-sm text-muted-foreground">
+            E-postasını doğrulamış ve hekimliğini bizzat bildiğin üyeleri onayla.
+          </p>
+          <form action="/admin" method="get" className="flex flex-wrap items-end gap-2">
+            <label className="min-w-0 flex-1 basis-52 space-y-1 text-sm font-medium">
+              <span>Üyenin e-posta adresi</span>
+              <Input type="email" name="email" maxLength={320} defaultValue={email} />
+            </label>
+            <Button type="submit" variant="outline">Üye ara</Button>
+            {email && <Button asChild variant="ghost"><Link href="/admin">Aramayı temizle</Link></Button>}
+          </form>
+
+          {candidates.error ? (
+            <p role="alert" className="text-sm text-destructive">Üye listesi alınamadı. Sayfayı yenileyip tekrar dene.</p>
+          ) : candidates.data.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Belgesiz onaya uygun üye bulunamadı.</p>
+          ) : (
+            <ul className="divide-y rounded-lg border">
+              {candidates.data.map((member) => (
+                <li key={member.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                  <div className="min-w-0">
+                    <p className="break-all font-medium">{member.email}</p>
+                    <p className="break-words text-sm text-muted-foreground">{member.nickname} · {formatDate(member.created_at)}</p>
+                  </div>
+                  <form action={approveDoctorWithoutDocument}>
+                    <input type="hidden" name="doctorId" value={member.id} />
+                    <input type="hidden" name="email" value={member.email} />
+                    <Button type="submit" variant="outline"><ShieldCheck /> Belgesiz onayla</Button>
+                  </form>
+                </li>
+              ))}
+            </ul>
           )}
         </section>
       </div>
