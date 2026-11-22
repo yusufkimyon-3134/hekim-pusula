@@ -1,9 +1,13 @@
+import { ClinicReviewPreview } from "@/features/clinic/components/clinic-review-preview";
+import { DoctorVerificationRepository } from "@/lib/repositories/doctor-verification-repository";
+import { isAdminUser } from "@/lib/admin/auth";
+import { safeQuery } from "@/lib/safe-query";
 import { PublicReviewSummary } from "@/features/clinic/components/public-review-summary";
 import { getPublicReviewSummaries } from "@/lib/repositories/public-review-summary";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import { Lock, LogIn, UserPlus, Clock, PenLine } from "lucide-react";
+import { Lock, LogIn, UserPlus, PenLine } from "lucide-react";
 import { Container } from "@/components/layout/container";
 import { SectionLabel } from "@/components/section-label";
 import { Card, CardContent } from "@/components/ui/card";
@@ -44,9 +48,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title, description, alternates: { canonical }, openGraph: { type: "website", url: canonical, title: `${title} | Hekim Pusula`, description, siteName: "Hekim Pusula", locale: "tr_TR" } };
 }
 
-export default async function ClinicDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ reported?: string; deleted?: string; shared?: string }> }) {
+export default async function ClinicDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ reported?: string; deleted?: string; shared?: string; previewError?: string }> }) {
   const { id } = await params;
-  const { reported, deleted, shared } = await searchParams;
+  const { reported, deleted, shared, previewError } = await searchParams;
   const supabase = await createClient();
   const clinicRepository = new ClinicRepository(supabase);
   const reviewRepository = new ReviewRepository(supabase);
@@ -71,6 +75,23 @@ export default async function ClinicDetailPage({ params, searchParams }: { param
     getPublicReviewSummaries([id]),
   ]);
 
+  const user = userData.user;
+  const showPreviewPanel = Boolean(user && !isVerified);
+  const [previews, verification, previewIds] = await Promise.all([
+    showPreviewPanel && user?.email_confirmed_at
+      ? supabase.rpc("clinic_review_previews", { p_clinic_id: id }).then(({ data, error }) => {
+          if (error) console.error("[clinic-review-previews]", error.message);
+          return data ?? [];
+        })
+      : [],
+    user && showPreviewPanel
+      ? safeQuery(() => new DoctorVerificationRepository(supabase).findLatestRequest(user.id), null)
+      : null,
+    canViewReviews && isAdminUser(user)
+      ? supabase.rpc("admin_clinic_review_preview_ids", { p_clinic_id: id }).then(({ data }) => data)
+      : null,
+  ]);
+
   const targetReview = `/clinic/${id}/review`;
   const reviewHref = !userData.user ? `/register?next=${encodeURIComponent(targetReview)}` : ownReviewId ? `/clinic/${id}/review/${ownReviewId}/edit` : targetReview;
   const hasReviews = reviews.length > 0;
@@ -87,16 +108,30 @@ export default async function ClinicDetailPage({ params, searchParams }: { param
   }
   const insights = hasReviews ? generateClinicInsights({ reviews, topicCounts, globalAvgManagementScore: globalAvgManagement }) : [];
 
-  return <Container className="py-12 sm:py-16">
+  return <div className={showPreviewPanel ? "h-full bg-white" : undefined}><Container className={showPreviewPanel ? "py-5 sm:py-10" : "py-8 sm:py-16"}>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }} />
-    <div className="mx-auto max-w-2xl space-y-14">
-      <ClinicHero branch={clinic.branch} hospital={clinic.hospital} />
-      {publicSummaries && <div className="rounded-lg border bg-muted/30 px-4 py-3"><PublicReviewSummary summary={publicSummaries.get(id)} /></div>}
-      <ClinicIntro />
+    <div className={`mx-auto max-w-2xl ${showPreviewPanel ? "space-y-5 sm:space-y-7" : "space-y-8 sm:space-y-14"}`}>
+      {showPreviewPanel ? (
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold leading-tight tracking-tight text-slate-900 sm:text-3xl">
+            <Link prefetch={false} href={`/hospital/${clinic.hospital.id}`} className="hover:underline">{clinic.hospital.name}</Link>
+          </h1>
+          <p className="text-base text-slate-600">{clinic.branch}</p>
+        </div>
+      ) : (
+        <>
+          <ClinicHero branch={clinic.branch} hospital={clinic.hospital} />
+          {publicSummaries && <div className="rounded-lg border bg-muted/30 px-4 py-3"><PublicReviewSummary summary={publicSummaries.get(id)} /></div>}
+          <ClinicIntro />
+        </>
+      )}
       {!userData.user ? <>
-        <Card className="border-primary/30 bg-primary/5"><CardContent className="flex flex-col items-center gap-4 py-8 text-center"><div className="flex size-12 items-center justify-center rounded-full bg-primary/10"><PenLine className="size-5 text-primary" /></div><div className="space-y-1.5"><p className="text-lg font-semibold">Bu klinikte çalıştın mı?</p><p className="mx-auto max-w-md text-sm text-muted-foreground">Nöbet, eğitim, yönetim, teşvik ve çalışma ortamı deneyimini diğer hekimlerle paylaş. Deneyimin, tercih yapacak bir meslektaşına yardımcı olabilir.</p></div><Button asChild className="w-full max-w-xs gap-2"><Link prefetch={false} href={`/register?next=${encodeURIComponent(targetReview)}`}><PenLine className="size-4" />Deneyimimi paylaş</Link></Button><p className="text-xs text-muted-foreground">Üyelik ücretsiz. Yorum içeriği yalnızca doğrulanmış hekimlere gösterilir.</p></CardContent></Card>
-        <Card className="border-dashed"><CardContent className="flex flex-col items-center gap-4 py-8 text-center"><div className="flex size-12 items-center justify-center rounded-full bg-muted"><Lock className="size-5 text-muted-foreground" /></div><div className="space-y-1.5"><p className="font-medium">Hekim deneyimleri doğrulanmış hekimlere özeldir</p><p className="mx-auto max-w-md text-sm text-muted-foreground">Bu klinikteki değerlendirmeleri görmek için ücretsiz hesap oluştur ve hekim doğrulamanı tamamla.</p></div><div className="flex flex-wrap justify-center gap-2"><Button asChild variant="outline" className="gap-2"><Link prefetch={false} href={`/login?redirectTo=${encodeURIComponent(`/clinic/${id}`)}`}><LogIn className="size-4" />Giriş yap</Link></Button><Button asChild variant="outline" className="gap-2"><Link prefetch={false} href={`/register?next=${encodeURIComponent(`/clinic/${id}`)}`}><UserPlus className="size-4" />Kayıt ol</Link></Button></div></CardContent></Card>
-      </> : !isVerified ? <><div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3"><p className="text-sm font-medium text-blue-900">Hekim doğrulaması gerekli</p><p className="mt-1 text-xs text-blue-800">Deneyimleri görmek ve paylaşmak için hekim doğrulamanı tamamla.</p></div><Card className="border-dashed"><CardContent className="flex flex-col items-center gap-4 py-10 text-center"><div className="flex size-12 items-center justify-center rounded-full bg-muted"><Clock className="size-5 text-muted-foreground" /></div><div className="space-y-1.5"><p className="font-medium">Hekim doğrulaması gerekiyor</p><p className="mx-auto max-w-md text-sm text-muted-foreground">Doğrulama tamamlandığında gerçek hekim deneyimlerine erişebilir ve kendi deneyimini paylaşabilirsin.</p></div><Button asChild variant="outline"><Link prefetch={false} href={`/profile?redirectTo=${encodeURIComponent(`/clinic/${id}`)}`}>Doğrulama durumumu gör</Link></Button></CardContent></Card></> : <>
+        <Card className="border-primary/30 bg-primary/5"><CardContent className="flex flex-col items-center gap-4 py-8 text-center"><div className="flex size-12 items-center justify-center rounded-full bg-primary/10"><PenLine className="size-5 text-primary" /></div><div className="space-y-1.5"><p className="text-lg font-semibold">Bu klinikte çalıştın mı?</p><p className="mx-auto max-w-md text-sm text-muted-foreground">Nöbet, eğitim, yönetim, teşvik ve çalışma ortamı deneyimini diğer hekimlerle paylaş. Deneyimin, tercih yapacak bir meslektaşına yardımcı olabilir.</p></div><Button asChild className="w-full max-w-xs gap-2"><Link prefetch={false} href={`/register?next=${encodeURIComponent(targetReview)}`}><PenLine className="size-4" />Deneyimimi paylaş</Link></Button><p className="text-xs text-muted-foreground">Üyelik ücretsiz. E-postanı doğruladığında varsa seçili yorumları okuyabilirsin.</p></CardContent></Card>
+        <Card className="border-dashed"><CardContent className="flex flex-col items-center gap-4 py-8 text-center"><div className="flex size-12 items-center justify-center rounded-full bg-muted"><Lock className="size-5 text-muted-foreground" /></div><div className="space-y-1.5"><p className="font-medium">Hekim yorumlarını keşfet</p><p className="mx-auto max-w-md text-sm text-muted-foreground">Seçili yorumları okumak için giriş yap veya ücretsiz hesap oluştur. Tüm yorumlar için hekim onayı gerekiyor.</p></div><div className="flex flex-wrap justify-center gap-2"><Button asChild variant="outline" className="gap-2"><Link prefetch={false} href={`/login?redirectTo=${encodeURIComponent(`/clinic/${id}`)}`}><LogIn className="size-4" />Giriş yap</Link></Button><Button asChild variant="outline" className="gap-2"><Link prefetch={false} href={`/register?next=${encodeURIComponent(`/clinic/${id}`)}`}><UserPlus className="size-4" />Kayıt ol</Link></Button></div></CardContent></Card>
+      </> : !isVerified ? (
+        <ClinicReviewPreview clinicId={id} previews={previews} summary={publicSummaries?.get(id)} pending={verification?.status === "pending"} />
+      ) : <>
+        {previewError && isAdminUser(user) && <p role="alert" className="text-sm text-destructive">Önizleme seçimi kaydedilemedi. Sayfayı yenileyip tekrar dene.</p>}
         {(reported || deleted || shared) && <p className="rounded-md bg-accent px-3 py-2 text-sm text-accent-foreground">{reported && "Raporun alındı, teşekkürler."}{deleted && "Değerlendirmen silindi."}{shared && "Değerlendirmen paylaşıldı, teşekkürler."}</p>}
         {shared === "created" && ownReviewId && (
           <InviteColleagueButton clinicUrl={`${siteUrl}/clinic/${encodeURIComponent(clinic.id)}`} />
@@ -105,9 +140,9 @@ export default async function ClinicDetailPage({ params, searchParams }: { param
         <section className="space-y-4"><SectionLabel>İstatistikler</SectionLabel>{hasReviews && stats ? <ClinicStatsSummary stats={stats} /> : <UpcomingInfoGrid />}</section>
         {insights.length > 0 && <section className="space-y-4"><SectionLabel>İçgörüler</SectionLabel><InsightCards insights={insights} /></section>}
         {hasReviews && stats && <><section className="space-y-4"><SectionLabel>Puan dağılımı</SectionLabel><RatingDistribution reviews={reviews} /></section><section className="space-y-4"><SectionLabel>Artı / eksi</SectionLabel><ProsAndCons stats={stats} /></section><section className="space-y-4"><SectionLabel>Öne çıkan yorumlar</SectionLabel><ReviewHighlights reviews={reviews} /></section></>}
-        <section className="space-y-4"><div className="flex items-center justify-between gap-4"><SectionLabel>Deneyimler ({reviews.length})</SectionLabel>{canWriteReview && <Button asChild variant="outline" size="sm"><Link prefetch={false} href={reviewHref}>{ownReviewId ? "Değerlendirmeni düzenle" : "Sen de paylaş"}</Link></Button>}</div>{hasReviews ? <ExperienceTimeline reviews={reviews} clinicId={id} /> : <ShareExperienceEmptyState reviewHref={reviewHref} />}</section>
+        <section className="space-y-4"><div className="flex items-center justify-between gap-4"><SectionLabel>Deneyimler ({reviews.length})</SectionLabel>{canWriteReview && <Button asChild variant="outline" size="sm"><Link prefetch={false} href={reviewHref}>{ownReviewId ? "Değerlendirmeni düzenle" : "Sen de paylaş"}</Link></Button>}</div>{hasReviews ? <ExperienceTimeline reviews={reviews} clinicId={id} previewIds={previewIds} /> : <ShareExperienceEmptyState reviewHref={reviewHref} />}</section>
       </>}
       <section className="rounded-lg border bg-muted/30 p-5"><h2 className="font-semibold">{clinic.hospital.name} {clinic.branch} hakkında</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Hekim Pusula, {clinic.hospital.city} ilindeki {clinic.hospital.name} {clinic.branch} kliniği hakkında hekimlerin çalışma deneyimlerini bir araya getirir. Nöbet düzeni, eğitim ortamı, yönetim, teşvik ve günlük çalışma koşulları; TUS, YDUS ve DHY tercihleri öncesinde hekimlerin en çok merak ettiği başlıklardandır. Bu klinikte çalıştıysan güncel deneyimini paylaşarak meslektaşlarının daha bilinçli tercih yapmasına katkı sağlayabilirsin.</p></section>
     </div>
-  </Container>;
+  </Container></div>;
 }

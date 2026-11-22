@@ -56,3 +56,22 @@ export async function submitReport(formData: FormData) {
   revalidatePath(`/clinic/${clinicId}`);
   redirect(`/clinic/${clinicId}?reported=1`);
 }
+
+export async function setClinicReviewPreview(formData: FormData) {
+  const clinicId = String(formData.get("clinicId") ?? "");
+  const reviewId = String(formData.get("reviewId") ?? "");
+  const clinicPath = `/clinic/${encodeURIComponent(clinicId)}`;
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (data.user?.app_metadata?.role !== "admin") redirect(clinicPath);
+
+  const result = await supabase.rpc("admin_set_clinic_review_preview", {
+    p_clinic_id: clinicId,
+    p_review_id: reviewId,
+    p_comment: String(formData.get("comment") ?? ""),
+    p_enabled: formData.get("enabled") === "true",
+  });
+  if (result.error || !result.data) redirect(`${clinicPath}?previewError=1#review-${encodeURIComponent(reviewId)}`);
+  revalidatePath(clinicPath);
+  redirect(`${clinicPath}#review-${encodeURIComponent(reviewId)}`);
+}

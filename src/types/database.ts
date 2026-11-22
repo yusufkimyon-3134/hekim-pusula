@@ -785,6 +785,18 @@ export type Database = {
       }
     }
     Functions: {
+      clinic_review_previews: {
+        Args: { p_clinic_id: string }
+        Returns: { comment: string; rating: number }[]
+      }
+      admin_clinic_review_preview_ids: {
+        Args: { p_clinic_id: string }
+        Returns: string[]
+      }
+      admin_set_clinic_review_preview: {
+        Args: { p_clinic_id: string; p_review_id: string; p_comment: string; p_enabled: boolean }
+        Returns: boolean
+      }
       admin_manual_verification_candidates: {
         Args: { p_email?: string }
         Returns: { id: string; email: string; nickname: string; created_at: string }[]

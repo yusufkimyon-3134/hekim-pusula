@@ -243,7 +243,7 @@ export function HospitalSuggestSearch({
                     <Lock className="size-3" aria-hidden="true" />
                     {reviewAccess === "anonymous"
                       ? "Değerlendirmeleri görmek için giriş yap veya kayıt ol"
-                      : "Değerlendirmeleri görmek için hekim doğrulaması gerekli"}
+                      : "Tüm değerlendirmeleri görmek için hekim doğrulaması gerekli"}
                   </span>
                 )}
               </button>
