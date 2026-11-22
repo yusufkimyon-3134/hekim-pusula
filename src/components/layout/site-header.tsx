@@ -19,10 +19,10 @@ export async function SiteHeader() {
   ]);
 
   return (
-    <header className="border-b border-slate-200 bg-white text-slate-900 md:border-border md:bg-primary md:text-primary-foreground">
+    <header className="border-b border-border bg-primary text-primary-foreground">
       <Container className="flex h-13 min-w-0 items-center justify-between gap-3 md:h-16">
         <Link prefetch={false} href="/" className="flex min-w-0 items-center gap-2 font-semibold">
-          <LogoMark className="h-6 w-6 shrink-0 text-teal-700 md:text-[color:var(--color-ring)]" />
+          <LogoMark className="h-6 w-6 shrink-0 text-[color:var(--color-ring)]" />
           <span className="truncate">Hekim Pusula</span>
         </Link>
 
@@ -34,7 +34,7 @@ export async function SiteHeader() {
               </Link>
             )}
             <details className="relative">
-              <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-md px-2 font-medium hover:bg-slate-100 md:hover:bg-primary-foreground/10 [&::-webkit-details-marker]:hidden">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-md px-2 font-medium hover:bg-primary-foreground/10 [&::-webkit-details-marker]:hidden">
                 <span className="sr-only md:not-sr-only">Profilim</span>
                 <Menu aria-hidden="true" className="size-5 md:hidden" />
                 <ChevronDown aria-hidden="true" className="hidden size-4 md:block" />
@@ -68,7 +68,7 @@ export async function SiteHeader() {
               <Link prefetch={false} href="/register" className="rounded-md bg-[color:var(--color-ring)] px-3 py-1.5 font-medium text-primary transition-opacity hover:opacity-90">Kayıt ol</Link>
             </nav>
             <details className="relative shrink-0 md:hidden">
-              <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-md px-2 text-sm font-medium hover:bg-slate-100 [&::-webkit-details-marker]:hidden">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-md px-2 text-sm font-medium hover:bg-primary-foreground/10 [&::-webkit-details-marker]:hidden">
                 <Menu aria-hidden="true" className="size-5" />
                 <span className="sr-only">Menü</span>
               </summary>
