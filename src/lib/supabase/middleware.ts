@@ -14,6 +14,7 @@ const PUBLIC_EXACT_PATHS = [
   "/forgot-password",
   "/reset-password",
   "/account-deleted",
+  "/auth/confirm",
   "/search",
 ];
 const PUBLIC_PREFIXES = [
@@ -31,7 +32,7 @@ const PUBLIC_PREFIXES = [
   // Yorum içeriği bu route üzerinden dönmez; yalnızca keşif verisi döner.
   "/api/search-suggestions",
 ];
-const AUTHENTICATED_PREFIXES = ["/profile"];
+const AUTHENTICATED_PREFIXES = ["/profile", "/auth/confirmed"];
 
 // Next.js'in kendi altyapı yolları (statik dosyalar, RSC istekleri vb.)
 // middleware matcher'ında zaten büyük ölçüde hariç tutuluyor (bkz.
