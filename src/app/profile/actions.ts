@@ -15,7 +15,7 @@ export async function saveProfile(formData: FormData) {
   // tamamlandığını net biçimde göster. Daha önce /profile?saved=1 üzerinde
   // tekrar kaydedildiğinde aynı URL'ye redirect edildiği için özellikle mobilde
   // buton çalışmamış gibi görünebiliyordu.
-  const fallbackRedirect = `/profile?saved=${Date.now()}`;
+  const fallbackRedirect = `/profile?saved=${Date.now()}#profil-bilgileri`;
   const redirectTo = safeRedirectPath(requestedRedirect, fallbackRedirect);
 
   if (!userData.user) {
@@ -37,7 +37,7 @@ export async function saveProfile(formData: FormData) {
     const returnTo = requestedRedirect
       ? `&redirectTo=${encodeURIComponent(safeRedirectPath(requestedRedirect, "/profile"))}`
       : "";
-    redirect(`/profile?error=${error}${returnTo}`);
+    redirect(`/profile?error=${error}${returnTo}#profil-bilgileri`);
   }
 
   const doctorRepository = new DoctorRepository(supabase);
@@ -53,7 +53,7 @@ export async function saveProfile(formData: FormData) {
     const returnTo = requestedRedirect
       ? `&redirectTo=${encodeURIComponent(safeRedirectPath(requestedRedirect, "/profile"))}`
       : "";
-    redirect(`/profile?error=${encodeURIComponent(errorMessage)}${returnTo}`);
+    redirect(`/profile?error=${encodeURIComponent(errorMessage)}${returnTo}#profil-bilgileri`);
   }
 
   if (/^\/(clinic|hospital)\//.test(redirectTo)) {

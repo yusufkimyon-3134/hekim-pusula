@@ -93,13 +93,18 @@ export default async function ProfilePage({
   return (
     <Container className="py-12">
       <div className="mx-auto max-w-lg space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Profilim</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {doctor
-              ? "Bilgilerini güncelle."
-              : "Deneyim paylaşabilmek için profilini tamamla."}
-          </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Profilim</h1>
+            <p className="mt-1 break-words text-sm text-muted-foreground">
+              {doctor
+                ? doctor.currentHospital || "Henüz çalıştığın kurumu eklemedin."
+                : "Deneyim paylaşabilmek için profilini tamamla."}
+            </p>
+          </div>
+          <Button asChild variant="outline" className="min-h-11">
+            <a href="#profil-bilgileri">{doctor ? "Profili güncelle" : "Profili tamamla"}</a>
+          </Button>
         </div>
 
         {doctor?.isVerified && rememberedDestination && (
@@ -196,16 +201,16 @@ export default async function ProfilePage({
           </>
         )}
 
-        <Card>
+        <Card id="profil-bilgileri" className="scroll-mt-6">
           <CardHeader>
-            <CardTitle className="text-base">Bilgilerin</CardTitle>
+            <CardTitle className="text-base">Profil bilgilerin</CardTitle>
           </CardHeader>
           <CardContent>
             <form action={saveProfile} className="space-y-4">
               <input
                 type="hidden"
                 name="redirectTo"
-                value={safeRedirectPath(redirectTo, "/profile?saved=1")}
+                value={requestedDestination}
               />
 
               {error && (
@@ -219,7 +224,7 @@ export default async function ProfilePage({
                   className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900"
                 >
                   {doctor?.isVerified
-                    ? "Bilgilerin başarıyla kaydedildi. Artık deneyimlerini paylaşabilirsin."
+                    ? "Profil bilgilerin güncellendi."
                     : "Bilgilerin başarıyla kaydedildi. Deneyim paylaşabilmek için hekim doğrulamasını tamamla."}
                 </p>
               )}
@@ -296,7 +301,7 @@ export default async function ProfilePage({
                   id="currentHospital"
                   name="currentHospital"
                   defaultValue={doctor?.currentHospital ?? ""}
-                  placeholder="Opsiyonel, kendi beyanın (doğrulanmaz)"
+                  placeholder="Örn. Reyhanlı Devlet Hastanesi"
                   maxLength={160}
                 />
               </div>
@@ -314,7 +319,7 @@ export default async function ProfilePage({
               </div>
 
               <Button type="submit" className="w-full">
-                Kaydet
+                Profil bilgilerini kaydet
               </Button>
             </form>
           </CardContent>
