@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { Container } from "@/components/layout/container";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -107,12 +107,12 @@ export default function ResetPasswordPage() {
               {error && <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
               <div className="space-y-1.5">
                 <Label htmlFor="password">Yeni şifre</Label>
-                <Input id="password" type="password" autoComplete="new-password" minLength={8} required value={password} onChange={(event) => setPassword(event.target.value)} />
+                <PasswordInput id="password" autoComplete="new-password" minLength={8} required value={password} onChange={(event) => setPassword(event.target.value)} />
                 <p className="text-xs text-muted-foreground">En az 8 karakter.</p>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="confirmPassword">Yeni şifreyi tekrar gir</Label>
-                <Input id="confirmPassword" type="password" autoComplete="new-password" minLength={8} required value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
+                <PasswordInput id="confirmPassword" visibilityLabel="Şifre tekrarını" autoComplete="new-password" minLength={8} required value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>{loading ? "Güncelleniyor…" : "Şifremi yenile"}</Button>
             </form>

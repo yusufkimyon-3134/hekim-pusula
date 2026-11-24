@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container } from "@/components/layout/container";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,7 +60,7 @@ export default async function LoginPage({
 
             <div className="space-y-1.5">
               <Label htmlFor="password">Şifre</Label>
-              <Input id="password" name="password" type="password" autoComplete="current-password" required />
+              <PasswordInput id="password" name="password" autoComplete="current-password" required />
               <div className="flex justify-end">
                 <Link prefetch={false} href="/forgot-password" className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
                   Şifremi unuttum

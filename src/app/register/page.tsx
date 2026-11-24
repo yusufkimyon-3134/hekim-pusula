@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Mail } from "lucide-react";
 import { Container } from "@/components/layout/container";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,7 +47,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
             <input type="hidden" name="next" value={next} />
             {error && <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
             <div className="space-y-1.5"><Label htmlFor="email">E-posta</Label><Input id="email" name="email" type="email" autoComplete="email" placeholder="ornek@eposta.com" required autoFocus /></div>
-            <div className="space-y-1.5"><Label htmlFor="password">Şifre</Label><Input id="password" name="password" type="password" autoComplete="new-password" minLength={6} placeholder="En az 6 karakter" required /></div>
+            <div className="space-y-1.5"><Label htmlFor="password">Şifre</Label><PasswordInput id="password" name="password" autoComplete="new-password" minLength={6} placeholder="En az 6 karakter" required /></div>
             <label className="flex items-start gap-2.5 text-xs text-muted-foreground"><input type="checkbox" name="acceptLegal" required className="mt-0.5 size-4 shrink-0 rounded border-input" /><span><Link prefetch={false} href="/kvkk-aydinlatma" target="_blank" className="text-foreground underline">KVKK Aydınlatma Metni</Link>&apos;ni okudum ve <Link prefetch={false} href="/kullanim-kosullari" target="_blank" className="text-foreground underline">Kullanım Koşulları</Link>&apos;nı kabul ediyorum.</span></label>
             <Button type="submit" className="w-full">Hesap oluştur</Button>
           </form>
