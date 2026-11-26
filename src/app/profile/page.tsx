@@ -72,6 +72,147 @@ export default async function ProfilePage({
     redirect(requestedDestination);
   }
 
+  const profileForm = (
+    <form action={saveProfile} className="space-y-4">
+      <input
+        type="hidden"
+        name="redirectTo"
+        value={requestedDestination}
+      />
+
+      {error && (
+        <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {error}
+        </p>
+      )}
+      {doctor && saved && !error && (
+        <p
+          role="status"
+          className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900"
+        >
+          Profil bilgilerin kaydedildi.
+          {!doctor.isVerified && (
+            <a href="#hekim-dogrulama" className="mt-1 block font-medium underline underline-offset-4">
+              Hekim hesabını doğrula
+            </a>
+          )}
+        </p>
+      )}
+
+      <div className="space-y-1.5">
+        <Label htmlFor="nickname">Rumuz</Label>
+        <Input
+          id="nickname"
+          name="nickname"
+          defaultValue={doctor?.nickname}
+          placeholder={doctor ? "Diğer hekimlere böyle görüneceksin" : "Rumuzunu yaz"}
+          className={doctor ? undefined : "h-11 text-base"}
+          maxLength={40}
+          required
+        />
+      </div>
+
+      <div className={doctor ? "grid grid-cols-2 gap-3" : "space-y-4"}>
+        <div className="space-y-1.5">
+          <Label htmlFor="role">Unvan</Label>
+          <NativeSelect
+            id="role"
+            name="role"
+            defaultValue={doctor?.role ?? ""}
+            className={doctor ? undefined : "h-11 text-base"}
+            required
+          >
+            {!doctor && <option value="" disabled>Unvan seç</option>}
+            {DOCTOR_ROLE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </NativeSelect>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="specialty">Branş</Label>
+          <Input
+            id="specialty"
+            name="specialty"
+            defaultValue={doctor?.specialty}
+            placeholder="Örn. İç Hastalıkları"
+            className={doctor ? undefined : "h-11 text-base"}
+            maxLength={80}
+            required
+          />
+        </div>
+      </div>
+
+      {doctor && (
+        <>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="city">Şehir</Label>
+              <Input
+                id="city"
+                name="city"
+                defaultValue={doctor?.city ?? ""}
+                placeholder="Opsiyonel"
+                maxLength={60}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="experienceYear">Deneyim (yıl)</Label>
+              <Input
+                id="experienceYear"
+                name="experienceYear"
+                type="number"
+                min={0}
+                max={60}
+                defaultValue={doctor?.experienceYear ?? ""}
+                placeholder="Opsiyonel"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="currentHospital">Şu an çalıştığın kurum</Label>
+            <Input
+              id="currentHospital"
+              name="currentHospital"
+              defaultValue={doctor?.currentHospital ?? ""}
+              placeholder="Örn. Reyhanlı Devlet Hastanesi"
+              maxLength={160}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="bio">Hakkında</Label>
+            <Textarea
+              id="bio"
+              name="bio"
+              defaultValue={doctor?.bio ?? ""}
+              placeholder="Opsiyonel, kısa bir tanıtım"
+              maxLength={500}
+              rows={3}
+            />
+          </div>
+        </>
+      )}
+
+      <Button type="submit" className="min-h-11 w-full">
+        {doctor ? "Profil bilgilerini kaydet" : "Profili oluştur"}
+      </Button>
+    </form>
+  );
+
+  if (!doctor) {
+    return (
+      <Container className="py-6 sm:py-12">
+        <section id="profil-bilgileri" className="mx-auto max-w-sm space-y-5" aria-labelledby="profile-create-title">
+          <h1 id="profile-create-title" className="text-2xl font-semibold tracking-tight">Profilini oluştur</h1>
+          {profileForm}
+        </section>
+      </Container>
+    );
+  }
+
   // Sadece oturum sahibinin yorumları; doktor-işyeri ilişkisi üzerinden filtrelenir.
   const myReviews = await safeQuery(async () => {
     const { data: workplaces, error: workplaceError } = await supabase
@@ -97,13 +238,11 @@ export default async function ProfilePage({
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Profilim</h1>
             <p className="mt-1 break-words text-sm text-muted-foreground">
-              {doctor
-                ? doctor.currentHospital || "Henüz çalıştığın kurumu eklemedin."
-                : "Deneyim paylaşabilmek için profilini tamamla."}
+              {doctor.currentHospital || "Henüz çalıştığın kurumu eklemedin."}
             </p>
           </div>
           <Button asChild variant="outline" className="min-h-11">
-            <a href="#profil-bilgileri">{doctor ? "Profili güncelle" : "Profili tamamla"}</a>
+            <a href="#profil-bilgileri">Profili güncelle</a>
           </Button>
         </div>
 
@@ -169,10 +308,10 @@ export default async function ProfilePage({
           </Card>
         )}
 
-        {redirectTo && !doctor && (
-          <p className="rounded-md bg-accent px-3 py-2 text-sm text-accent-foreground">
-            Devam edebilmek için önce profilini tamamlaman gerekiyor.
-          </p>
+        {saved && !error && !doctor.isVerified && (
+          <Button asChild className="min-h-11">
+            <a href="#hekim-dogrulama">Hekim hesabını doğrula</a>
+          </Button>
         )}
 
         {redirectTo && doctor && !doctor.isVerified && (
@@ -193,11 +332,13 @@ export default async function ProfilePage({
                 {verificationError}
               </p>
             )}
-            <VerificationCard
-              isVerified={doctor.isVerified}
-              latestRequest={latestVerificationRequest}
-              returnTo={requestedDestination || rememberedDestination}
-            />
+            <div id="hekim-dogrulama" className="scroll-mt-6">
+              <VerificationCard
+                isVerified={doctor.isVerified}
+                latestRequest={latestVerificationRequest}
+                returnTo={requestedDestination || rememberedDestination}
+              />
+            </div>
           </>
         )}
 
@@ -206,122 +347,7 @@ export default async function ProfilePage({
             <CardTitle className="text-base">Profil bilgilerin</CardTitle>
           </CardHeader>
           <CardContent>
-            <form action={saveProfile} className="space-y-4">
-              <input
-                type="hidden"
-                name="redirectTo"
-                value={requestedDestination}
-              />
-
-              {error && (
-                <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                  {error}
-                </p>
-              )}
-              {saved && !error && (
-                <p
-                  role="status"
-                  className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900"
-                >
-                  {doctor?.isVerified
-                    ? "Profil bilgilerin güncellendi."
-                    : "Bilgilerin başarıyla kaydedildi. Deneyim paylaşabilmek için hekim doğrulamasını tamamla."}
-                </p>
-              )}
-
-              <div className="space-y-1.5">
-                <Label htmlFor="nickname">Rumuz</Label>
-                <Input
-                  id="nickname"
-                  name="nickname"
-                  defaultValue={doctor?.nickname}
-                  placeholder="Diğer hekimlere böyle görüneceksin"
-                  maxLength={40}
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="role">Unvan</Label>
-                  <NativeSelect
-                    id="role"
-                    name="role"
-                    defaultValue={doctor?.role ?? "specialist"}
-                    required
-                  >
-                    {DOCTOR_ROLE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="specialty">Branş</Label>
-                  <Input
-                    id="specialty"
-                    name="specialty"
-                    defaultValue={doctor?.specialty}
-                    placeholder="Örn. İç Hastalıkları"
-                    maxLength={80}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="city">Şehir</Label>
-                  <Input
-                    id="city"
-                    name="city"
-                    defaultValue={doctor?.city ?? ""}
-                    placeholder="Opsiyonel"
-                    maxLength={60}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="experienceYear">Deneyim (yıl)</Label>
-                  <Input
-                    id="experienceYear"
-                    name="experienceYear"
-                    type="number"
-                    min={0}
-                    max={60}
-                    defaultValue={doctor?.experienceYear ?? ""}
-                    placeholder="Opsiyonel"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="currentHospital">Şu an çalıştığın kurum</Label>
-                <Input
-                  id="currentHospital"
-                  name="currentHospital"
-                  defaultValue={doctor?.currentHospital ?? ""}
-                  placeholder="Örn. Reyhanlı Devlet Hastanesi"
-                  maxLength={160}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="bio">Hakkında</Label>
-                <Textarea
-                  id="bio"
-                  name="bio"
-                  defaultValue={doctor?.bio ?? ""}
-                  placeholder="Opsiyonel, kısa bir tanıtım"
-                  maxLength={500}
-                  rows={3}
-                />
-              </div>
-
-              <Button type="submit" className="w-full">
-                Profil bilgilerini kaydet
-              </Button>
-            </form>
+            {profileForm}
           </CardContent>
         </Card>
 
