@@ -3,10 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 const baseUrl = "https://www.hekimpusula.com.tr";
 
 const staticRoutes = [
-  { path: "", changeFrequency: "daily", priority: "1.0" },
+  { path: "/", changeFrequency: "daily", priority: "1.0" },
   { path: "/search", changeFrequency: "daily", priority: "0.9" },
-  { path: "/rankings", changeFrequency: "daily", priority: "0.8" },
-  { path: "/compare", changeFrequency: "weekly", priority: "0.7" },
   { path: "/kvkk-aydinlatma", changeFrequency: "yearly", priority: "0.2" },
   { path: "/kullanim-kosullari", changeFrequency: "yearly", priority: "0.2" },
 ] as const;
@@ -25,9 +23,10 @@ export async function GET() {
   const entries: SitemapEntry[] = [...staticRoutes];
   try {
     const supabase = await createClient();
-    const [{ data: hospitals, error: hospitalsError }, { data: clinics, error: clinicsError }] = await Promise.all([
+    const [{ data: hospitals, error: hospitalsError }, { data: clinics, error: clinicsError }, { data: reviewedClinics, error: reviewedError }] = await Promise.all([
       supabase.from("hospitals").select("id, city").order("id"),
       supabase.from("clinics").select("id, branch").is("merged_into_id", null).order("id"),
+      supabase.from("public_clinic_review_summaries").select("clinic_id").order("clinic_id"),
     ]);
 
     if (!hospitalsError) {
@@ -37,6 +36,12 @@ export async function GET() {
         if (hospital.city) cities.add(hospital.city);
       }
       for (const city of cities) entries.push({ path: `/sehir/${encodeURIComponent(city)}`, changeFrequency: "weekly", priority: "0.8" });
+    }
+
+    if (!reviewedError) {
+      for (const { clinic_id } of reviewedClinics ?? []) {
+        entries.push({ path: `/clinic/${clinic_id}`, changeFrequency: "weekly", priority: "0.9" });
+      }
     }
 
     if (!clinicsError) {
