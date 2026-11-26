@@ -29,7 +29,6 @@ export async function saveProfile(formData: FormData) {
     city: formData.get("city") || undefined,
     currentHospital: formData.get("currentHospital") || undefined,
     experienceYear: formData.get("experienceYear") || undefined,
-    bio: formData.get("bio") || undefined,
   });
 
   if (!parsed.success) {

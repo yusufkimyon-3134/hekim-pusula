@@ -53,7 +53,7 @@ export class DoctorRepository {
           city: input.city ?? null,
           current_hospital: input.currentHospital ?? null,
           experience_year: input.experienceYear ?? null,
-          bio: input.bio ?? null,
+          ...(input.bio === undefined ? {} : { bio: input.bio }),
         },
         { onConflict: "id" }
       )

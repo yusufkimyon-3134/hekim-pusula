@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { Container } from "@/components/layout/container";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -179,18 +178,6 @@ export default async function ProfilePage({
               defaultValue={doctor?.currentHospital ?? ""}
               placeholder="Örn. Reyhanlı Devlet Hastanesi"
               maxLength={160}
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="bio">Hakkında</Label>
-            <Textarea
-              id="bio"
-              name="bio"
-              defaultValue={doctor?.bio ?? ""}
-              placeholder="Opsiyonel, kısa bir tanıtım"
-              maxLength={500}
-              rows={3}
             />
           </div>
         </>
