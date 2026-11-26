@@ -30,7 +30,8 @@ const getClinics = cache(async (branch: string) => {
 });
 
 export async function generateMetadata({ params }: { params: Promise<{ branch: string }> }): Promise<Metadata> {
-  const { branch } = await params;
+  const { branch: rawBranch } = await params;
+  const branch = rawBranch.includes("%") ? decodeURIComponent(rawBranch) : rawBranch;
   const clinics = await getClinics(branch);
   if (clinics.length === 0) return { title: "Branş bulunamadı", robots: { index: false, follow: false } };
   const title = `${branch} Hastane Yorumları ve Çalışma Koşulları`;
@@ -40,7 +41,8 @@ export async function generateMetadata({ params }: { params: Promise<{ branch: s
 }
 
 export default async function BranchPage({ params, searchParams }: { params: Promise<{ branch: string }>; searchParams: Promise<{ city?: string }> }) {
-  const { branch } = await params;
+  const { branch: rawBranch } = await params;
+  const branch = rawBranch.includes("%") ? decodeURIComponent(rawBranch) : rawBranch;
   const { city } = await searchParams;
   const branchClinics = await getClinics(branch);
   if (branchClinics.length === 0) notFound();
